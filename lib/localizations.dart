@@ -16,8 +16,7 @@ class AppLocalizations {
   }
 
   // Static member to have a simple access to the delegate from the MaterialApp
-  static const LocalizationsDelegate<AppLocalizations> delegate =
-      AppLocalizationsDelegate();
+  static const AppLocalizationsDelegate delegate = AppLocalizationsDelegate();
 
   Map<String, String> _localizedStrings;
 

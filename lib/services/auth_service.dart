@@ -9,7 +9,7 @@ class AuthService {
 //  final storage = FlutterSecureStorage();
   // Create storage
   Future<Map> login(UserCredential userCredential) async {
-    final response = await http.post('$BASE_URL/jwt-auth/v1/token', body: {
+    final response = await http.post('$BASE_URL/api/customer/login', body: {
       'username': userCredential.usernameOrEmail,
       'password': userCredential.password
     });
@@ -17,6 +17,7 @@ class AuthService {
     if (response.statusCode == 200) {
       // If the call to the server was successful, parse the JSON.
       // return User.fromJson(json.decode(response.body));
+      print(response.body);
       setUser(response.body);
       return jsonDecode(response.body);
     } else {
@@ -35,12 +36,11 @@ class AuthService {
   }
 
   Future<Map> register(User user) async {
-    final response = await http.post('$BASE_URL/tradebakerz/wc/v1/register',
-        body: {
-          'username': user.username,
-          'password': user.password,
-          'email': user.email
-        });
+    final response = await http.post('$BASE_URL/api/customer/register', body: {
+      'username': user.username,
+      'password': user.password,
+      'email': user.email
+    });
     if (response.statusCode == 200) {
       // If the call to the server was successful, parse the JSON.
       // return User.fromJson(json.decode(response.body));
@@ -54,8 +54,6 @@ class AuthService {
             timeInSecForIos: 1,
             fontSize: 16.0);
       }
-      // If that call was not successful, throw an error.
-//      throw Exception(response.body);
       return jsonDecode(response.body);
     }
   }
