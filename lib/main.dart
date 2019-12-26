@@ -12,11 +12,16 @@ import 'package:flutter_scaffold/shop/shop.dart';
 import 'package:flutter_scaffold/wishlist.dart';
 import 'package:provider/provider.dart';
 
+import 'database/moor_database.dart';
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   final Locale locale = Locale('fr');
   runApp(MultiProvider(
-    providers: [ChangeNotifierProvider<AuthBlock>.value(value: AuthBlock())],
+    providers: [
+      ChangeNotifierProvider<AuthBlock>.value(value: AuthBlock()),
+      Provider(builder: (_) => Database())
+    ],
     child: MaterialApp(
       localizationsDelegates: [
         AppLocalizations.delegate,

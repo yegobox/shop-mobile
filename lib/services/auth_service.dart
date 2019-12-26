@@ -1,26 +1,32 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter_scaffold/config.dart';
 import 'package:flutter_scaffold/models/user.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 
+import 'data.dart';
+
 class AuthService {
 //  final storage = FlutterSecureStorage();
   // Create storage
   Future<Map> login(UserCredential userCredential) async {
     final response = await http.post('$BASE_URL/api/customer/login', body: {
-      'username': userCredential.usernameOrEmail,
+      'email': userCredential.usernameOrEmail,
       'password': userCredential.password
+    }, headers: {
+      HttpHeaders.acceptHeader: 'application/json'
     });
-
+    print(response.statusCode);
     if (response.statusCode == 200) {
       // If the call to the server was successful, parse the JSON.
       // return User.fromJson(json.decode(response.body));
-      print(response.body);
+
       setUser(response.body);
       return jsonDecode(response.body);
     } else {
+      print(response.body);
       if (response.statusCode == 403) {
         Fluttertoast.showToast(
             msg: "Invalid Credentials",
@@ -29,8 +35,6 @@ class AuthService {
             timeInSecForIos: 1,
             fontSize: 16.0);
       }
-      // If that call was not successful, throw an error.
-//      throw Exception(response.body);
       return jsonDecode(response.body);
     }
   }
@@ -59,17 +63,12 @@ class AuthService {
   }
 
   setUser(String value) async {
-//    await storage.write(key: 'user', value: value);
+    final data = convertFromJson(value);
+//    final database = Provider.of(context)
+    print(data.data.name);
   }
 
-  getUser() async {
-//    String user = await storage.read(key: 'user');
-//    if (user != null) {
-//      return jsonDecode(user);
-//    }
-  }
+  getUser() async {}
 
-  logout() async {
-//    await storage.delete(key: 'user');
-  }
+  logout() async {}
 }
