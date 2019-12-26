@@ -2,12 +2,11 @@ import 'dart:convert';
 
 import 'package:flutter_scaffold/config.dart';
 import 'package:flutter_scaffold/models/user.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:http/http.dart' as http;
 
 class AuthService {
-  final storage = FlutterSecureStorage();
+//  final storage = FlutterSecureStorage();
   // Create storage
   Future<Map> login(UserCredential userCredential) async {
     final response = await http.post('$BASE_URL/jwt-auth/v1/token', body: {
@@ -62,16 +61,17 @@ class AuthService {
   }
 
   setUser(String value) async {
-    await storage.write(key: 'user', value: value);
+//    await storage.write(key: 'user', value: value);
   }
 
   getUser() async {
-    String user = await storage.read(key: 'user');
-    if (user != null) {
-      return jsonDecode(user);
-    }
+//    String user = await storage.read(key: 'user');
+//    if (user != null) {
+//      return jsonDecode(user);
+//    }
   }
+
   logout() async {
-    await storage.delete(key: 'user');
+//    await storage.delete(key: 'user');
   }
 }
