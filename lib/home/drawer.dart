@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_scaffold/blocks/auth_block.dart';
+import 'package:flutter_scaffold/localizations.dart';
 import 'package:provider/provider.dart';
 
 class AppDrawer extends StatefulWidget {
@@ -79,7 +80,8 @@ class _AppDrawerState extends State<AppDrawer> {
               ListTile(
                 leading: Icon(Icons.shopping_cart,
                     color: Theme.of(context).accentColor),
-                title: Text('My Cart'),
+                title: Text(
+                    AppLocalizations.of(context).translate('NEW_ARRIVALS')),
                 trailing: Container(
                   padding: const EdgeInsets.all(10.0),
                   decoration: new BoxDecoration(

@@ -14,7 +14,7 @@ import 'package:provider/provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  final Locale locale = Locale('en');
+  final Locale locale = Locale('fr');
   runApp(MultiProvider(
     providers: [ChangeNotifierProvider<AuthBlock>.value(value: AuthBlock())],
     child: MaterialApp(
@@ -23,7 +23,7 @@ void main() {
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate
       ],
-      supportedLocales: [Locale('en'), Locale('ar')],
+      supportedLocales: [Locale('fr'), Locale('en'), Locale('ar')],
       locale: locale,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
