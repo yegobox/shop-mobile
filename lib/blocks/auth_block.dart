@@ -17,6 +17,8 @@ class AuthBlock extends ChangeNotifier {
 
   // Loading
   bool _loading = false;
+  String _token;
+  String get token => _token;
   String _loadingType;
   bool get loading => _loading;
   String get loadingType => _loadingType;
@@ -24,10 +26,17 @@ class AuthBlock extends ChangeNotifier {
     _loading = loadingState;
     notifyListeners();
   }
+
+  set token(String token) {
+    _token = token;
+    notifyListeners();
+  }
+
   set loadingType(String loadingType) {
     _loadingType = loadingType;
     notifyListeners();
   }
+
   // Loading
   bool _isLoggedIn = false;
   bool get isLoggedIn => _isLoggedIn;
@@ -41,6 +50,8 @@ class AuthBlock extends ChangeNotifier {
   Map get user => _user;
   setUser() async {
     _user = await _authService.getUser();
+    token = _user.values.toList()[0];
+
     isLoggedIn = _user == null ? false : true;
     notifyListeners();
   }

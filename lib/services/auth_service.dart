@@ -3,13 +3,14 @@ import 'dart:io';
 
 import 'package:flutter_scaffold/config.dart';
 import 'package:flutter_scaffold/models/user.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 
 import 'data.dart';
 
 class AuthService {
-//  final storage = FlutterSecureStorage();
+  final storage = FlutterSecureStorage();
   // Create storage
   Future<Map> login(UserCredential userCredential) async {
     final response = await http.post('$BASE_URL/api/customer/login', body: {
@@ -63,12 +64,30 @@ class AuthService {
   }
 
   setUser(String value) async {
-    final data = convertFromJson(value);
-//    final database = Provider.of(context)
-    print(data.data.name);
+    final response = convertFromJson(value);
+    await storage.write(key: 'user', value: value);
+//    SharedPreferences prefs = await SharedPreferences.getInstance();
+//    prefs.setInt('status', response.data.status);
+//    prefs.setString('name', response.data.name);
+//    prefs.setString('token', response.token);
+//    prefs.setString('first_name', response.data.firstName);
+//    prefs.setString('last_name', response.data.lastName);
+//    prefs.setString('gender', response.data.gender);
+//    prefs.setString('date_of_birth', response.data.dateOfBirth);
   }
 
-  getUser() async {}
+  getUser() async {
+//    SharedPreferences prefs = await SharedPreferences.getInstance();
+//    return jsonDecode(prefs.getString('token'));
+    String user = await storage.read(key: 'user');
+    if (user != null) {
+      return jsonDecode(user);
+    }
+  }
 
-  logout() async {}
+  logout() async {
+//    SharedPreferences prefs = await SharedPreferences.getInstance();
+//    prefs.setString('token', null);
+    await storage.delete(key: 'user');
+  }
 }

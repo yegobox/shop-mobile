@@ -23,10 +23,10 @@ class _AppDrawerState extends State<AppDrawer> {
             )),
             currentAccountPicture: CircleAvatar(
               backgroundImage: NetworkImage(
-                  'https://avatars2.githubusercontent.com/u/2400215?s=120&v=4'),
+                  'https://i.pinimg.com/236x/7c/c7/a6/7cc7a630624d20f7797cb4c8e93c09c1--flat-icons-free-icon.jpg'),
             ),
-            accountEmail: Text(auth.user['user_email']),
-            accountName: Text(auth.user['user_display_name']),
+            accountEmail: Text(auth.user['data']['email']),
+            accountName: Text(auth.user['data']['name']),
           ),
         Expanded(
           child: ListView(
