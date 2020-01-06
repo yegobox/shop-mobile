@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_scaffold/blocks/auth_block.dart';
-import 'package:flutter_scaffold/localizations.dart';
 import 'package:provider/provider.dart';
 
 class AppDrawer extends StatefulWidget {
@@ -37,63 +36,6 @@ class _AppDrawerState extends State<AppDrawer> {
                 title: Text('Home'),
                 onTap: () {
                   Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.shopping_basket,
-                    color: Theme.of(context).accentColor),
-                title: Text('Shop'),
-                trailing: Text('New',
-                    style: TextStyle(color: Theme.of(context).primaryColor)),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/shop');
-                },
-              ),
-              ListTile(
-                leading:
-                    Icon(Icons.category, color: Theme.of(context).accentColor),
-                title: Text('Categorise'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/categorise');
-                },
-              ),
-              ListTile(
-                leading:
-                    Icon(Icons.favorite, color: Theme.of(context).accentColor),
-                title: Text('My Wishlist'),
-                trailing: Container(
-                  padding: const EdgeInsets.all(10.0),
-                  decoration: new BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                  child: Text('4',
-                      style: TextStyle(color: Colors.white, fontSize: 10.0)),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/wishlist');
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.shopping_cart,
-                    color: Theme.of(context).accentColor),
-                title: Text(
-                    AppLocalizations.of(context).translate('NEW_ARRIVALS')),
-                trailing: Container(
-                  padding: const EdgeInsets.all(10.0),
-                  decoration: new BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                  child: Text('2',
-                      style: TextStyle(color: Colors.white, fontSize: 10.0)),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/cart');
                 },
               ),
               ListTile(

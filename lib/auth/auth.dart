@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_scaffold/auth/signin.dart';
 import 'package:flutter_scaffold/blocks/auth_block.dart';
-import 'signin.dart';
+import 'package:provider/provider.dart';
+
 import 'signup.dart';
 
 class Auth extends StatelessWidget {
-  final List<Widget> tabs = [
-    SignIn(),
-    SignUp()
-  ];
+  final List<Widget> tabs = [SignIn(), SignUp()];
   @override
   Widget build(BuildContext context) {
     final AuthBlock authBlock = Provider.of<AuthBlock>(context);
@@ -27,10 +25,10 @@ class Auth extends StatelessWidget {
             title: Text('Create Account'),
           ),
         ],
-        currentIndex: authBlock.currentIndex,
+        currentIndex: 1,
         selectedItemColor: Colors.amber[800],
-        onTap: (num){
-           authBlock.currentIndex = num;
+        onTap: (num) {
+          authBlock.currentIndex = num;
         },
       ),
       body: tabs[authBlock.currentIndex],
