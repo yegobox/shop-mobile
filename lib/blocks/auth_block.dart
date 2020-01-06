@@ -50,9 +50,11 @@ class AuthBlock extends ChangeNotifier {
   Map get user => _user;
   setUser() async {
     _user = await _authService.getUser();
-    token = _user.values.toList()[0];
 
     isLoggedIn = _user == null ? false : true;
+    if (isLoggedIn) {
+      token = _user.values.toList()[0];
+    }
     notifyListeners();
   }
 

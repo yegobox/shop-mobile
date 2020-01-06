@@ -35,16 +35,15 @@ void main() {
           primaryColor: Colors.deepOrange[500],
           accentColor: Colors.lightBlue[900],
           fontFamily: locale.languageCode == 'ar' ? 'Dubai' : 'Lato'),
-      initialRoute: '/',
-      routes: <String, WidgetBuilder>{
-        '/': (BuildContext context) => Home(),
-        '/auth': (BuildContext context) => Auth(),
-        '/shop': (BuildContext context) => Shop(),
-        '/categorise': (BuildContext context) => Categorise(),
-        '/wishlist': (BuildContext context) => WishList(),
-        '/cart': (BuildContext context) => CartList(),
-        '/settings': (BuildContext context) => Settings(),
-        '/products': (BuildContext context) => Products()
+      routes: {
+        '/': (context) => Home(),
+        'auth': (context) => Auth(),
+        'shop': (context) => Shop(),
+        'categorise': (context) => Categorise(),
+        'wishlist': (context) => WishList(),
+        'cart': (context) => CartList(),
+        'profile': (context) => Profile(),
+        'products': (context) => Products()
       },
     ),
   ));

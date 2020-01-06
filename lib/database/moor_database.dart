@@ -17,11 +17,13 @@ class User extends Table {
   TextColumn get avatar => text().nullable()();
 }
 
-@UseMoor(tables: [
-  User,
-], daos: [
-  UserDao
-])
+class Cart extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get imageUrl => text().withLength(max: 16)();
+  IntColumn get quantity => integer()();
+}
+
+@UseMoor(tables: [User, Cart], daos: [UserDao, CartDao])
 class Database extends _$Database {
   Database()
       : super(FlutterQueryExecutor.inDatabaseFolder(
@@ -37,6 +39,16 @@ class Database extends _$Database {
       },
     );
   }
+}
+
+@UseDao(tables: [Cart])
+class CartDao extends DatabaseAccessor<Database> with _$UserDaoMixin {
+  final Database db;
+
+  CartDao(this.db) : super(db);
+
+  Future insertCart(Insertable<CartData> cart) => into(db.cart).insert(cart);
+  Stream<List<CartData>> watchCarts() => select(db.cart).watch();
 }
 
 @UseDao(tables: [User])

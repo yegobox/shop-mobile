@@ -82,7 +82,7 @@ class UserData extends DataClass implements Insertable<UserData> {
   @override
   Map<String, dynamic> toJson(
       {ValueSerializer serializer = const ValueSerializer.defaults()}) {
-    return <String, dynamic>{
+    return {
       'id': serializer.toJson<int>(id),
       'firstName': serializer.toJson<String>(firstName),
       'email': serializer.toJson<String>(email),
@@ -201,7 +201,7 @@ class UserData extends DataClass implements Insertable<UserData> {
                                           $mrjc(groupId.hashCode,
                                               avatar.hashCode))))))))))));
   @override
-  bool operator ==(dynamic other) =>
+  bool operator ==(other) =>
       identical(this, other) ||
       (other is UserData &&
           other.id == this.id &&
@@ -572,20 +572,224 @@ class $UserTable extends User with TableInfo<$UserTable, UserData> {
   }
 }
 
+class CartData extends DataClass implements Insertable<CartData> {
+  final int id;
+  final String imageUrl;
+  final int quantity;
+  CartData(
+      {@required this.id, @required this.imageUrl, @required this.quantity});
+  factory CartData.fromData(Map<String, dynamic> data, GeneratedDatabase db,
+      {String prefix}) {
+    final effectivePrefix = prefix ?? '';
+    final intType = db.typeSystem.forDartType<int>();
+    final stringType = db.typeSystem.forDartType<String>();
+    return CartData(
+      id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
+      imageUrl: stringType
+          .mapFromDatabaseResponse(data['${effectivePrefix}image_url']),
+      quantity:
+          intType.mapFromDatabaseResponse(data['${effectivePrefix}quantity']),
+    );
+  }
+  factory CartData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+    return CartData(
+      id: serializer.fromJson<int>(json['id']),
+      imageUrl: serializer.fromJson<String>(json['imageUrl']),
+      quantity: serializer.fromJson<int>(json['quantity']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson(
+      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+    return {
+      'id': serializer.toJson<int>(id),
+      'imageUrl': serializer.toJson<String>(imageUrl),
+      'quantity': serializer.toJson<int>(quantity),
+    };
+  }
+
+  @override
+  CartCompanion createCompanion(bool nullToAbsent) {
+    return CartCompanion(
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      imageUrl: imageUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(imageUrl),
+      quantity: quantity == null && nullToAbsent
+          ? const Value.absent()
+          : Value(quantity),
+    );
+  }
+
+  CartData copyWith({int id, String imageUrl, int quantity}) => CartData(
+        id: id ?? this.id,
+        imageUrl: imageUrl ?? this.imageUrl,
+        quantity: quantity ?? this.quantity,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('CartData(')
+          ..write('id: $id, ')
+          ..write('imageUrl: $imageUrl, ')
+          ..write('quantity: $quantity')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      $mrjf($mrjc(id.hashCode, $mrjc(imageUrl.hashCode, quantity.hashCode)));
+  @override
+  bool operator ==(other) =>
+      identical(this, other) ||
+      (other is CartData &&
+          other.id == this.id &&
+          other.imageUrl == this.imageUrl &&
+          other.quantity == this.quantity);
+}
+
+class CartCompanion extends UpdateCompanion<CartData> {
+  final Value<int> id;
+  final Value<String> imageUrl;
+  final Value<int> quantity;
+  const CartCompanion({
+    this.id = const Value.absent(),
+    this.imageUrl = const Value.absent(),
+    this.quantity = const Value.absent(),
+  });
+  CartCompanion.insert({
+    this.id = const Value.absent(),
+    @required String imageUrl,
+    @required int quantity,
+  })  : imageUrl = Value(imageUrl),
+        quantity = Value(quantity);
+  CartCompanion copyWith(
+      {Value<int> id, Value<String> imageUrl, Value<int> quantity}) {
+    return CartCompanion(
+      id: id ?? this.id,
+      imageUrl: imageUrl ?? this.imageUrl,
+      quantity: quantity ?? this.quantity,
+    );
+  }
+}
+
+class $CartTable extends Cart with TableInfo<$CartTable, CartData> {
+  final GeneratedDatabase _db;
+  final String _alias;
+  $CartTable(this._db, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  GeneratedIntColumn _id;
+  @override
+  GeneratedIntColumn get id => _id ??= _constructId();
+  GeneratedIntColumn _constructId() {
+    return GeneratedIntColumn('id', $tableName, false,
+        hasAutoIncrement: true, declaredAsPrimaryKey: true);
+  }
+
+  final VerificationMeta _imageUrlMeta = const VerificationMeta('imageUrl');
+  GeneratedTextColumn _imageUrl;
+  @override
+  GeneratedTextColumn get imageUrl => _imageUrl ??= _constructImageUrl();
+  GeneratedTextColumn _constructImageUrl() {
+    return GeneratedTextColumn('image_url', $tableName, false,
+        maxTextLength: 16);
+  }
+
+  final VerificationMeta _quantityMeta = const VerificationMeta('quantity');
+  GeneratedIntColumn _quantity;
+  @override
+  GeneratedIntColumn get quantity => _quantity ??= _constructQuantity();
+  GeneratedIntColumn _constructQuantity() {
+    return GeneratedIntColumn(
+      'quantity',
+      $tableName,
+      false,
+    );
+  }
+
+  @override
+  List<GeneratedColumn> get $columns => [id, imageUrl, quantity];
+  @override
+  $CartTable get asDslTable => this;
+  @override
+  String get $tableName => _alias ?? 'cart';
+  @override
+  final String actualTableName = 'cart';
+  @override
+  VerificationContext validateIntegrity(CartCompanion d,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    if (d.id.present) {
+      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
+    } else if (id.isRequired && isInserting) {
+      context.missing(_idMeta);
+    }
+    if (d.imageUrl.present) {
+      context.handle(_imageUrlMeta,
+          imageUrl.isAcceptableValue(d.imageUrl.value, _imageUrlMeta));
+    } else if (imageUrl.isRequired && isInserting) {
+      context.missing(_imageUrlMeta);
+    }
+    if (d.quantity.present) {
+      context.handle(_quantityMeta,
+          quantity.isAcceptableValue(d.quantity.value, _quantityMeta));
+    } else if (quantity.isRequired && isInserting) {
+      context.missing(_quantityMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CartData map(Map<String, dynamic> data, {String tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
+    return CartData.fromData(data, _db, prefix: effectivePrefix);
+  }
+
+  @override
+  Map<String, Variable> entityToSql(CartCompanion d) {
+    final map = <String, Variable>{};
+    if (d.id.present) {
+      map['id'] = Variable<int, IntType>(d.id.value);
+    }
+    if (d.imageUrl.present) {
+      map['image_url'] = Variable<String, StringType>(d.imageUrl.value);
+    }
+    if (d.quantity.present) {
+      map['quantity'] = Variable<int, IntType>(d.quantity.value);
+    }
+    return map;
+  }
+
+  @override
+  $CartTable createAlias(String alias) {
+    return $CartTable(_db, alias);
+  }
+}
+
 abstract class _$Database extends GeneratedDatabase {
   _$Database(QueryExecutor e) : super(SqlTypeSystem.defaultInstance, e);
   $UserTable _user;
   $UserTable get user => _user ??= $UserTable(this);
+  $CartTable _cart;
+  $CartTable get cart => _cart ??= $CartTable(this);
   UserDao _userDao;
   UserDao get userDao => _userDao ??= UserDao(this as Database);
+  CartDao _cartDao;
+  CartDao get cartDao => _cartDao ??= CartDao(this as Database);
   @override
-  List<TableInfo> get allTables => [user];
+  List<TableInfo> get allTables => [user, cart];
 }
 
 // **************************************************************************
 // DaoGenerator
 // **************************************************************************
 
+mixin _$CartDaoMixin on DatabaseAccessor<Database> {
+  $CartTable get cart => db.cart;
+}
 mixin _$UserDaoMixin on DatabaseAccessor<Database> {
   $UserTable get user => db.user;
 }

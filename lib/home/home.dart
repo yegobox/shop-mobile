@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:badges/badges.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_scaffold/localizations.dart';
@@ -19,6 +20,8 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   List<String> imgList = List<String>();
   Products products;
+
+  int cartCount = 0;
   loadHeaderImages() async {
     final response = await http.get('$BASE_URL/api/products',
         headers: {HttpHeaders.acceptHeader: 'application/json'});
@@ -57,12 +60,11 @@ class _HomeState extends State<Home> {
             slivers: <Widget>[
               SliverAppBar(
                 // Provide a standard title.
-                // title: Text('asdas'),
-                // pinned: true,
+                pinned: true,
                 actions: <Widget>[
-                  IconButton(
-                    icon: Icon(Icons.shopping_cart),
-                    onPressed: () {},
+                  Badge(
+                    badgeContent: Text(cartCount.toString()),
+                    child: Icon(Icons.shopping_cart),
                   )
                 ],
                 // Allows the user to reveal the app bar if they begin scrolling
@@ -108,9 +110,37 @@ class _HomeState extends State<Home> {
                                           clipBehavior: Clip.antiAlias,
                                           child: InkWell(
                                             onTap: () {
-                                              Navigator.pushNamed(
-                                                  context, '/products',
-                                                  arguments: i);
+//                                              final database =
+//                                                  Provider.of<Database>(
+//                                                      context);
+//                                              final cart = CartData(
+//                                                  quantity: 1,
+//                                                  imageUrl: i
+//                                                      .images[0].largeImageUrl);
+
+//                                              var url =
+//                                                  i.images[0].largeImageUrl;
+//                                              database.cartDao
+//                                                  .watchCarts()
+//                                                  .listen((onData) => {
+//                                                        this.cartCount = 1,
+//                                                        for (var u = 0;
+//                                                            u <= onData.length;
+//                                                            u++)
+//                                                          {
+//                                                            print(url),
+//                                                            print(onData[u]),
+//                                                            if (onData[u]
+//                                                                    .imageUrl !=
+//                                                                url)
+//                                                              {
+//                                                                database.cartDao
+//                                                                    .insertCart(
+//                                                                        cart)
+//                                                              }
+//                                                          }
+//                                                      });
+                                              toast("added to cart");
                                             },
                                             child: Column(
                                               crossAxisAlignment:
@@ -182,17 +212,6 @@ class _HomeState extends State<Home> {
                                     fontSize: 18,
                                     fontWeight: FontWeight.w700)),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                right: 8.0, top: 8.0, left: 8.0),
-                            child: RaisedButton(
-                                color: Theme.of(context).primaryColor,
-                                child: Text('View All',
-                                    style: TextStyle(color: Colors.white)),
-                                onPressed: () {
-                                  Navigator.pushNamed(context, '/categorise');
-                                }),
-                          )
                         ],
                       ),
                       Container(
@@ -275,6 +294,18 @@ class _HomeState extends State<Home> {
               )
             ]),
       ),
+    );
+  }
+
+  void toast(String message) {
+    Fluttertoast.showToast(
+      msg: "$message",
+      toastLength: Toast.LENGTH_LONG,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIos: 1,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+      fontSize: 16.0,
     );
   }
 }

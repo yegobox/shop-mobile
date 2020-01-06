@@ -35,14 +35,7 @@ class _HomeSliderState extends State<HomeSlider> {
                   builder: (BuildContext context) {
                     return Container(
                         width: MediaQuery.of(context).size.width,
-                        child: Image.asset(i
-//                          fit: BoxFit.cover,
-//                          imageUrl: i,
-//                          placeholder: (context, url) =>
-//                              Center(child: CircularProgressIndicator()),
-//                          errorWidget: (context, url, error) =>
-//                              new Icon(Icons.error),
-                            ));
+                        child: Image.asset(i));
                   },
                 );
               }).toList(),

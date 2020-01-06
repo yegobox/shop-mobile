@@ -43,7 +43,7 @@ class _AppDrawerState extends State<AppDrawer> {
                 title: Text('Login'),
                 onTap: () {
                   Navigator.pop(context);
-                  Navigator.pushNamed(context, '/auth');
+                  Navigator.pushNamed(context, 'auth');
                 },
               ),
               Divider(),
@@ -53,7 +53,7 @@ class _AppDrawerState extends State<AppDrawer> {
                 title: Text('Settings'),
                 onTap: () {
                   Navigator.pop(context);
-                  Navigator.pushNamed(context, '/settings');
+                  Navigator.pushNamed(context, 'profile');
                 },
               ),
               ListTile(
