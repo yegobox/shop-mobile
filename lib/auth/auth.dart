@@ -25,7 +25,7 @@ class Auth extends StatelessWidget {
             title: Text('Create Account'),
           ),
         ],
-        currentIndex: 1,
+        currentIndex: authBlock.currentIndex ?? 1,
         selectedItemColor: Colors.amber[800],
         onTap: (num) {
           authBlock.currentIndex = num;
