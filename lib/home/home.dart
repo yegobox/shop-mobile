@@ -110,36 +110,6 @@ class _HomeState extends State<Home> {
                                           clipBehavior: Clip.antiAlias,
                                           child: InkWell(
                                             onTap: () {
-//                                              final database =
-//                                                  Provider.of<Database>(
-//                                                      context);
-//                                              final cart = CartData(
-//                                                  quantity: 1,
-//                                                  imageUrl: i
-//                                                      .images[0].largeImageUrl);
-
-//                                              var url =
-//                                                  i.images[0].largeImageUrl;
-//                                              database.cartDao
-//                                                  .watchCarts()
-//                                                  .listen((onData) => {
-//                                                        this.cartCount = 1,
-//                                                        for (var u = 0;
-//                                                            u <= onData.length;
-//                                                            u++)
-//                                                          {
-//                                                            print(url),
-//                                                            print(onData[u]),
-//                                                            if (onData[u]
-//                                                                    .imageUrl !=
-//                                                                url)
-//                                                              {
-//                                                                database.cartDao
-//                                                                    .insertCart(
-//                                                                        cart)
-//                                                              }
-//                                                          }
-//                                                      });
                                               toast("added to cart");
                                             },
                                             child: Column(
@@ -149,7 +119,8 @@ class _HomeState extends State<Home> {
                                                 SizedBox(
                                                   height: 160,
                                                   child: Hero(
-                                                    tag: '$i',
+                                                    tag: i
+                                                        .name, //TODO: work on this hero's to find out if all is well.
                                                     child: CachedNetworkImage(
                                                       fit: BoxFit.cover,
                                                       imageUrl: i.images[0]
