@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:badges/badges.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_scaffold/home/screen_argument_product_details.dart';
 import 'package:flutter_scaffold/localizations.dart';
 import 'package:flutter_scaffold/services/products.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -110,7 +111,24 @@ class _HomeState extends State<Home> {
                                           clipBehavior: Clip.antiAlias,
                                           child: InkWell(
                                             onTap: () {
-                                              toast("added to cart");
+                                              Navigator.pushNamed(
+                                                context,
+                                                'products',
+                                                arguments:
+                                                    ScreenArgumentsProducts(
+                                                        i.name,
+                                                        i.id,
+                                                        i.images[0]
+                                                            .largeImageUrl,
+                                                        i.description,
+                                                        i.price.toString(),
+                                                        i.specialPrice
+                                                            .toString(),
+                                                        i.reviews.totalRating
+                                                            .toString()),
+                                              );
+
+//                                              toast("added to cart");
                                             },
                                             child: Column(
                                               crossAxisAlignment:
