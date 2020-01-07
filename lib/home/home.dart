@@ -6,12 +6,13 @@ import 'package:audio_recorder/audio_recorder.dart';
 import 'package:badges/badges.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_scaffold/home/screen_argument_product_details.dart';
+import 'package:flutter_scaffold/database/moor_database.dart';
 import 'package:flutter_scaffold/localizations.dart';
 import 'package:flutter_scaffold/services/products.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 
 import '../config.dart';
 import 'drawer.dart';
@@ -79,13 +80,18 @@ class _HomeState extends State<Home> {
                 // Provide a standard title.
                 pinned: true,
                 actions: <Widget>[
-                  Badge(
-                    position: BadgePosition.topLeft(),
-                    badgeContent: Text(
-                      cartCount.toString(),
-                      style: TextStyle(color: Colors.white),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushNamed(context, 'cart');
+                    },
+                    child: Badge(
+                      position: BadgePosition.topLeft(),
+                      badgeContent: Text(
+                        cartCount.toString(),
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      child: Icon(Icons.shopping_cart),
                     ),
-                    child: Icon(Icons.shopping_cart),
                   )
                 ],
                 // Allows the user to reveal the app bar if they begin scrolling
@@ -131,24 +137,51 @@ class _HomeState extends State<Home> {
                                           clipBehavior: Clip.antiAlias,
                                           child: InkWell(
                                             onTap: () {
-                                              Navigator.pushNamed(
-                                                context,
-                                                'products',
-                                                arguments:
-                                                    ScreenArgumentsProducts(
-                                                        i.name,
-                                                        i.id,
-                                                        i.images[0]
-                                                            .largeImageUrl,
-                                                        i.description,
-                                                        i.price.toString(),
-                                                        i.specialPrice
-                                                            .toString(),
-                                                        i.reviews.totalRating
-                                                            .toString()),
-                                              );
-
-//                                              toast("added to cart");
+//                                              Navigator.pushNamed(
+//                                                context,
+//                                                'products',
+//                                                arguments:
+//                                                    ScreenArgumentsProducts(
+//                                                        i.name,
+//                                                        i.id,
+//                                                        i.images[0]
+//                                                            .largeImageUrl,
+//                                                        i.description,
+//                                                        i.price.toString(),
+//                                                        i.specialPrice
+//                                                            .toString(),
+//                                                        i.reviews.totalRating
+//                                                            .toString()),
+//                                              );
+                                              final database =
+                                                  Provider.of<Database>(
+                                                      context);
+                                              final cart = CartData(
+                                                  id: i.id,
+                                                  refId: i.id,
+                                                  price: i.price.toString(),
+                                                  name: i.name,
+                                                  imageUrl:
+                                                      i.images[0].largeImageUrl,
+                                                  quantity: 1);
+                                              setState(() {
+                                                cartCount += 1;
+                                              });
+                                              database.cartDao
+                                                  .isRowExist(i.id)
+                                                  .listen((data) => {
+                                                        if (data.length == 0)
+                                                          {
+                                                            cartCount =
+                                                                cart.quantity,
+                                                            database.cartDao
+                                                                .insertCart(
+                                                                    cart)
+                                                          }
+                                                        else
+                                                          {}
+                                                      });
+                                              toast("added to cart");
                                             },
                                             child: Column(
                                               crossAxisAlignment:

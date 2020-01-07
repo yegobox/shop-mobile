@@ -4,5 +4,6 @@
   "MYCART": "Mon panier",
   "PERMISION": "Vous devez accepter les autorisations pour envoyer la commande avec l'application",
   "BUY": "Acheter",
-  "PRODUCT_DETAILS": "Détail du produit"
+  "PRODUCT_DETAILS": "Détail du produit",
+  "CART": "Articles dans votre panier"
 }

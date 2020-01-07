@@ -574,10 +574,18 @@ class $UserTable extends User with TableInfo<$UserTable, UserData> {
 
 class CartData extends DataClass implements Insertable<CartData> {
   final int id;
+  final int refId;
   final String imageUrl;
+  final String price;
+  final String name;
   final int quantity;
   CartData(
-      {@required this.id, @required this.imageUrl, @required this.quantity});
+      {@required this.id,
+      @required this.refId,
+      @required this.imageUrl,
+      @required this.price,
+      @required this.name,
+      @required this.quantity});
   factory CartData.fromData(Map<String, dynamic> data, GeneratedDatabase db,
       {String prefix}) {
     final effectivePrefix = prefix ?? '';
@@ -585,8 +593,12 @@ class CartData extends DataClass implements Insertable<CartData> {
     final stringType = db.typeSystem.forDartType<String>();
     return CartData(
       id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
+      refId: intType.mapFromDatabaseResponse(data['${effectivePrefix}ref_id']),
       imageUrl: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}image_url']),
+      price:
+          stringType.mapFromDatabaseResponse(data['${effectivePrefix}price']),
+      name: stringType.mapFromDatabaseResponse(data['${effectivePrefix}name']),
       quantity:
           intType.mapFromDatabaseResponse(data['${effectivePrefix}quantity']),
     );
@@ -595,7 +607,10 @@ class CartData extends DataClass implements Insertable<CartData> {
       {ValueSerializer serializer = const ValueSerializer.defaults()}) {
     return CartData(
       id: serializer.fromJson<int>(json['id']),
+      refId: serializer.fromJson<int>(json['refId']),
       imageUrl: serializer.fromJson<String>(json['imageUrl']),
+      price: serializer.fromJson<String>(json['price']),
+      name: serializer.fromJson<String>(json['name']),
       quantity: serializer.fromJson<int>(json['quantity']),
     );
   }
@@ -604,7 +619,10 @@ class CartData extends DataClass implements Insertable<CartData> {
       {ValueSerializer serializer = const ValueSerializer.defaults()}) {
     return {
       'id': serializer.toJson<int>(id),
+      'refId': serializer.toJson<int>(refId),
       'imageUrl': serializer.toJson<String>(imageUrl),
+      'price': serializer.toJson<String>(price),
+      'name': serializer.toJson<String>(name),
       'quantity': serializer.toJson<int>(quantity),
     };
   }
@@ -613,62 +631,109 @@ class CartData extends DataClass implements Insertable<CartData> {
   CartCompanion createCompanion(bool nullToAbsent) {
     return CartCompanion(
       id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      refId:
+          refId == null && nullToAbsent ? const Value.absent() : Value(refId),
       imageUrl: imageUrl == null && nullToAbsent
           ? const Value.absent()
           : Value(imageUrl),
+      price:
+          price == null && nullToAbsent ? const Value.absent() : Value(price),
+      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
       quantity: quantity == null && nullToAbsent
           ? const Value.absent()
           : Value(quantity),
     );
   }
 
-  CartData copyWith({int id, String imageUrl, int quantity}) => CartData(
+  CartData copyWith(
+          {int id,
+          int refId,
+          String imageUrl,
+          String price,
+          String name,
+          int quantity}) =>
+      CartData(
         id: id ?? this.id,
+        refId: refId ?? this.refId,
         imageUrl: imageUrl ?? this.imageUrl,
+        price: price ?? this.price,
+        name: name ?? this.name,
         quantity: quantity ?? this.quantity,
       );
   @override
   String toString() {
     return (StringBuffer('CartData(')
           ..write('id: $id, ')
+          ..write('refId: $refId, ')
           ..write('imageUrl: $imageUrl, ')
+          ..write('price: $price, ')
+          ..write('name: $name, ')
           ..write('quantity: $quantity')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      $mrjf($mrjc(id.hashCode, $mrjc(imageUrl.hashCode, quantity.hashCode)));
+  int get hashCode => $mrjf($mrjc(
+      id.hashCode,
+      $mrjc(
+          refId.hashCode,
+          $mrjc(
+              imageUrl.hashCode,
+              $mrjc(
+                  price.hashCode, $mrjc(name.hashCode, quantity.hashCode))))));
   @override
   bool operator ==(other) =>
       identical(this, other) ||
       (other is CartData &&
           other.id == this.id &&
+          other.refId == this.refId &&
           other.imageUrl == this.imageUrl &&
+          other.price == this.price &&
+          other.name == this.name &&
           other.quantity == this.quantity);
 }
 
 class CartCompanion extends UpdateCompanion<CartData> {
   final Value<int> id;
+  final Value<int> refId;
   final Value<String> imageUrl;
+  final Value<String> price;
+  final Value<String> name;
   final Value<int> quantity;
   const CartCompanion({
     this.id = const Value.absent(),
+    this.refId = const Value.absent(),
     this.imageUrl = const Value.absent(),
+    this.price = const Value.absent(),
+    this.name = const Value.absent(),
     this.quantity = const Value.absent(),
   });
   CartCompanion.insert({
     this.id = const Value.absent(),
+    @required int refId,
     @required String imageUrl,
+    @required String price,
+    @required String name,
     @required int quantity,
-  })  : imageUrl = Value(imageUrl),
+  })  : refId = Value(refId),
+        imageUrl = Value(imageUrl),
+        price = Value(price),
+        name = Value(name),
         quantity = Value(quantity);
   CartCompanion copyWith(
-      {Value<int> id, Value<String> imageUrl, Value<int> quantity}) {
+      {Value<int> id,
+      Value<int> refId,
+      Value<String> imageUrl,
+      Value<String> price,
+      Value<String> name,
+      Value<int> quantity}) {
     return CartCompanion(
       id: id ?? this.id,
+      refId: refId ?? this.refId,
       imageUrl: imageUrl ?? this.imageUrl,
+      price: price ?? this.price,
+      name: name ?? this.name,
       quantity: quantity ?? this.quantity,
     );
   }
@@ -687,13 +752,52 @@ class $CartTable extends Cart with TableInfo<$CartTable, CartData> {
         hasAutoIncrement: true, declaredAsPrimaryKey: true);
   }
 
+  final VerificationMeta _refIdMeta = const VerificationMeta('refId');
+  GeneratedIntColumn _refId;
+  @override
+  GeneratedIntColumn get refId => _refId ??= _constructRefId();
+  GeneratedIntColumn _constructRefId() {
+    return GeneratedIntColumn(
+      'ref_id',
+      $tableName,
+      false,
+    );
+  }
+
   final VerificationMeta _imageUrlMeta = const VerificationMeta('imageUrl');
   GeneratedTextColumn _imageUrl;
   @override
   GeneratedTextColumn get imageUrl => _imageUrl ??= _constructImageUrl();
   GeneratedTextColumn _constructImageUrl() {
-    return GeneratedTextColumn('image_url', $tableName, false,
-        maxTextLength: 16);
+    return GeneratedTextColumn(
+      'image_url',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _priceMeta = const VerificationMeta('price');
+  GeneratedTextColumn _price;
+  @override
+  GeneratedTextColumn get price => _price ??= _constructPrice();
+  GeneratedTextColumn _constructPrice() {
+    return GeneratedTextColumn(
+      'price',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _nameMeta = const VerificationMeta('name');
+  GeneratedTextColumn _name;
+  @override
+  GeneratedTextColumn get name => _name ??= _constructName();
+  GeneratedTextColumn _constructName() {
+    return GeneratedTextColumn(
+      'name',
+      $tableName,
+      false,
+    );
   }
 
   final VerificationMeta _quantityMeta = const VerificationMeta('quantity');
@@ -709,7 +813,8 @@ class $CartTable extends Cart with TableInfo<$CartTable, CartData> {
   }
 
   @override
-  List<GeneratedColumn> get $columns => [id, imageUrl, quantity];
+  List<GeneratedColumn> get $columns =>
+      [id, refId, imageUrl, price, name, quantity];
   @override
   $CartTable get asDslTable => this;
   @override
@@ -725,11 +830,29 @@ class $CartTable extends Cart with TableInfo<$CartTable, CartData> {
     } else if (id.isRequired && isInserting) {
       context.missing(_idMeta);
     }
+    if (d.refId.present) {
+      context.handle(
+          _refIdMeta, refId.isAcceptableValue(d.refId.value, _refIdMeta));
+    } else if (refId.isRequired && isInserting) {
+      context.missing(_refIdMeta);
+    }
     if (d.imageUrl.present) {
       context.handle(_imageUrlMeta,
           imageUrl.isAcceptableValue(d.imageUrl.value, _imageUrlMeta));
     } else if (imageUrl.isRequired && isInserting) {
       context.missing(_imageUrlMeta);
+    }
+    if (d.price.present) {
+      context.handle(
+          _priceMeta, price.isAcceptableValue(d.price.value, _priceMeta));
+    } else if (price.isRequired && isInserting) {
+      context.missing(_priceMeta);
+    }
+    if (d.name.present) {
+      context.handle(
+          _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
+    } else if (name.isRequired && isInserting) {
+      context.missing(_nameMeta);
     }
     if (d.quantity.present) {
       context.handle(_quantityMeta,
@@ -754,8 +877,17 @@ class $CartTable extends Cart with TableInfo<$CartTable, CartData> {
     if (d.id.present) {
       map['id'] = Variable<int, IntType>(d.id.value);
     }
+    if (d.refId.present) {
+      map['ref_id'] = Variable<int, IntType>(d.refId.value);
+    }
     if (d.imageUrl.present) {
       map['image_url'] = Variable<String, StringType>(d.imageUrl.value);
+    }
+    if (d.price.present) {
+      map['price'] = Variable<String, StringType>(d.price.value);
+    }
+    if (d.name.present) {
+      map['name'] = Variable<String, StringType>(d.name.value);
     }
     if (d.quantity.present) {
       map['quantity'] = Variable<int, IntType>(d.quantity.value);

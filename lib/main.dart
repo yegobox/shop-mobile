@@ -20,7 +20,8 @@ void main() {
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider<AuthBlock>.value(value: AuthBlock()),
-      Provider(builder: (_) => Database())
+      Provider(builder: (_) => Database()),
+      Provider(builder: (_) => Database().cartDao)
     ],
     child: MaterialApp(
       localizationsDelegates: [
