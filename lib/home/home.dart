@@ -1,5 +1,8 @@
 import 'dart:io';
+import 'dart:io' as io;
+import 'dart:math';
 
+import 'package:audio_recorder/audio_recorder.dart';
 import 'package:badges/badges.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +11,7 @@ import 'package:flutter_scaffold/localizations.dart';
 import 'package:flutter_scaffold/services/products.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 
 import '../config.dart';
 import 'drawer.dart';
@@ -19,7 +23,11 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  Recording _recording = new Recording();
+  bool _isRecording = false;
+  Random random = new Random();
   List<String> imgList = List<String>();
+  TextEditingController _controller = new TextEditingController();
   Products products;
 
   int cartCount = 0;
@@ -49,6 +57,14 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Add your onPressed code here!
+          this.recordAudio();
+        },
+        child: Icon(Icons.settings_voice),
+        backgroundColor: Colors.green,
+      ),
       drawer: Drawer(
         child: AppDrawer(),
       ),
@@ -64,7 +80,11 @@ class _HomeState extends State<Home> {
                 pinned: true,
                 actions: <Widget>[
                   Badge(
-                    badgeContent: Text(cartCount.toString()),
+                    position: BadgePosition.topLeft(),
+                    badgeContent: Text(
+                      cartCount.toString(),
+                      style: TextStyle(color: Colors.white),
+                    ),
                     child: Icon(Icons.shopping_cart),
                   )
                 ],
@@ -296,5 +316,34 @@ class _HomeState extends State<Home> {
       textColor: Colors.white,
       fontSize: 16.0,
     );
+  }
+
+  void recordAudio() async {
+    try {
+      if (await AudioRecorder.hasPermissions) {
+        if (_controller.text != null && _controller.text != "") {
+          String path = _controller.text;
+          if (!_controller.text.contains('/')) {
+            io.Directory appDocDirectory =
+                await getApplicationDocumentsDirectory();
+            path = appDocDirectory.path + '/' + _controller.text;
+          }
+          print("Start recording: $path");
+          await AudioRecorder.start(
+              path: path, audioOutputFormat: AudioOutputFormat.AAC);
+        } else {
+          await AudioRecorder.start();
+        }
+        bool isRecording = await AudioRecorder.isRecording;
+        setState(() {
+          _recording = new Recording(duration: new Duration(), path: "");
+          _isRecording = isRecording;
+        });
+      } else {
+        toast(AppLocalizations.of(context).translate('PERMISION'));
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_scaffold/home/screen_argument_product_details.dart';
+import 'package:flutter_scaffold/localizations.dart';
 import 'package:html/parser.dart';
 import 'package:smooth_star_rating/smooth_star_rating.dart';
 
@@ -11,7 +12,7 @@ class Products extends StatelessWidget {
         ModalRoute.of(context).settings.arguments;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Product Detail'),
+        title: Text(AppLocalizations.of(context).translate('PRODUCT_DETAILS')),
       ),
       body: SafeArea(
         top: false,
@@ -133,7 +134,8 @@ class Products extends StatelessWidget {
                             child: RaisedButton(
                               color: Colors.deepOrange[500],
                               textColor: Colors.white,
-                              child: Text("Buy"),
+                              child: Text(AppLocalizations.of(context)
+                                  .translate('BUY')),
                             ),
                           ),
                         ))
