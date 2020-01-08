@@ -85,9 +85,7 @@ class _SignInState extends State<SignIn> {
                                 !auth.loading) {
                               // Update values
                               _formKey.currentState.save();
-                              // Hit Api
-                              //TODO:send a context to use for further decision
-                              auth.login(userCredential);
+                              auth.login(userCredential, context: context);
                               if (auth.token != null) {
                                 toast("Logged in.");
                               }
