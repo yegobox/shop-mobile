@@ -5,5 +5,13 @@
   "PERMISION": "Vous devez accepter les autorisations pour envoyer la commande avec l'application",
   "BUY": "Acheter",
   "PRODUCT_DETAILS": "Détail du produit",
-  "CART": "Articles dans votre panier"
+  "CART": "Articles dans votre panier",
+  "FIRSTNAME": "Prénom",
+  "ENTERUSERNAME": "Saisissez votre nom d'utilisateur",
+  "ENTEREMAIL": "Veuillez saisir votre adresse e-mail",
+  "PHONENUMBER": "Numéro de téléphone",
+  "PLEASEENTERPASSWORD": "Veuillez entrer le mot de passe",
+  "PLEASEENTERPASSWORDCONFIRMATION": "Veuillez entrer Confirmer le mot de passe",
+  "PASSWORDDONOTMATCH": "Les champs de mot de passe ne correspondent pas",
+  "ACCOUNTCREATED": "Votre compte a été créé"
 }

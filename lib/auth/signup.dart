@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_scaffold/blocks/auth_block.dart';
+import 'package:flutter_scaffold/localizations.dart';
 import 'package:flutter_scaffold/models/user.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 
 class SignUp extends StatefulWidget {
@@ -28,18 +30,21 @@ class _SignUpState extends State<SignUp> {
                   child: TextFormField(
                     validator: (value) {
                       if (value.isEmpty) {
-                        return 'Please Enter Username';
+                        return AppLocalizations.of(context)
+                            .translate('FIRSTNAME');
                       }
                       return null;
                     },
                     onSaved: (value) {
                       setState(() {
-                        user.username = value;
+                        user.firstName = value;
                       });
                     },
                     decoration: InputDecoration(
-                      hintText: 'Enter Username',
-                      labelText: 'Username',
+                      hintText: AppLocalizations.of(context)
+                          .translate('ENTERUSERNAME'),
+                      labelText:
+                          AppLocalizations.of(context).translate('FIRSTNAME'),
                     ),
                   ),
                 ),
@@ -48,7 +53,8 @@ class _SignUpState extends State<SignUp> {
                   child: TextFormField(
                     validator: (value) {
                       if (value.isEmpty) {
-                        return 'Please Enter Email Address';
+                        return AppLocalizations.of(context)
+                            .translate('ENTEREMAIL');
                       }
                       return null;
                     },
@@ -58,7 +64,8 @@ class _SignUpState extends State<SignUp> {
                       });
                     },
                     decoration: InputDecoration(
-                      hintText: 'Enter Email',
+                      hintText:
+                          AppLocalizations.of(context).translate('ENTEREMAIL'),
                       labelText: 'Email',
                     ),
                   ),
@@ -68,17 +75,19 @@ class _SignUpState extends State<SignUp> {
                   child: TextFormField(
                     validator: (value) {
                       if (value.isEmpty) {
-                        return 'Phone number';
+                        return AppLocalizations.of(context)
+                            .translate('PHONENUMBER');
                       }
                       return null;
                     },
                     onSaved: (value) {
                       setState(() {
-                        user.email = value;
+                        user.phone = value;
                       });
                     },
                     decoration: InputDecoration(
-                      hintText: 'Phone number',
+                      hintText:
+                          AppLocalizations.of(context).translate('PHONENUMBER'),
                       labelText: 'phone',
                     ),
                   ),
@@ -88,7 +97,8 @@ class _SignUpState extends State<SignUp> {
                   child: TextFormField(
                       validator: (value) {
                         if (value.isEmpty) {
-                          return 'Please Enter Password';
+                          return AppLocalizations.of(context)
+                              .translate('PLEASEENTERPASSWORD');
                         }
                         return null;
                       },
@@ -101,7 +111,8 @@ class _SignUpState extends State<SignUp> {
                         user.password = text;
                       },
                       decoration: InputDecoration(
-                        hintText: 'Enter Password',
+                        hintText: AppLocalizations.of(context)
+                            .translate('PLEASEENTERPASSWORD'),
                         labelText: 'Password',
                       ),
                       obscureText: true),
@@ -109,9 +120,13 @@ class _SignUpState extends State<SignUp> {
                 TextFormField(
                   validator: (value) {
                     if (value.isEmpty) {
-                      return 'Please Enter Confirm Password';
+                      return AppLocalizations.of(context)
+                          .translate('PLEASEENTERPASSWORDCONFIRMATION');
                     } else if (user.password != confirmPassword) {
-                      return 'Password fields dont match';
+                      return AppLocalizations.of(context)
+                          .translate('PASSWORDDONOTMATCH');
+                    } else if (user.password == confirmPassword) {
+                      user.passwordConfirmation = confirmPassword;
                     }
                     return null;
                   },
@@ -146,7 +161,13 @@ class _SignUpState extends State<SignUp> {
                             _formKey.currentState.save();
                             // If the form is valid, display a snackbar. In the real world,
                             // you'd often call a server or save the information in a database.
-                            auth.register(user);
+                            auth.register(user, context: context);
+                            if (auth.registered) {
+                              toast(AppLocalizations.of(context)
+                                  .translate('ACCOUNTCREATED'));
+                              Navigator.pop(context);
+                              Navigator.pushNamed(context, '/');
+                            }
                           }
                         },
                       );
@@ -158,6 +179,18 @@ class _SignUpState extends State<SignUp> {
           ),
         ),
       ),
+    );
+  }
+
+  void toast(String message) {
+    Fluttertoast.showToast(
+      msg: "$message",
+      toastLength: Toast.LENGTH_LONG,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIos: 1,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+      fontSize: 16.0,
     );
   }
 }

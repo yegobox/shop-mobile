@@ -1,7 +1,13 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_scaffold/localizations.dart';
+import 'package:flutter_scaffold/shop/orange_token.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'database/moor_database.dart';
 
@@ -238,7 +244,53 @@ class _CartListState extends State<CartList> {
                     minWidth: double.infinity,
                     height: 40.0,
                     child: RaisedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        //TODO: foreach carts and submit to addToCart to web
+                        //TODO: add pusher to listen on payment completion then submit another request to complete payment on the server so it can be saved on the dashboard
+                        //TODO: implement local checkout to open Orange webView to complete payment.
+                        //TODO: get the token then on getting the token do other stuff so we avoid token being expired
+                        http.post("https://api.orange.com/oauth/v2/token",
+                            body: {
+                              "grant_type": "client_credentials"
+                            },
+                            headers: {
+                              HttpHeaders.authorizationHeader:
+                                  "Basic U0hWdmN5UW12U2sxanhydlBBWm1STWFhUTQ5eENQMTg6TmpkU09OT0dxb2xhYXdFNw==",
+                              HttpHeaders.contentTypeHeader:
+                                  "application/x-www-form-urlencoded",
+                            }).then((dynamic response) {
+                          final int statusCode = response.statusCode;
+                          if (statusCode < 200 ||
+                              statusCode > 400 ||
+                              json == null) {
+                            return;
+                          } else {
+                            OrangeToken orangeToken =
+                                orangeTokenFromJson(response.body);
+
+                            //now finalize creating a payment session
+                            http.post(
+                                'https://api.orange.com/orange-money-webpay/dev/v1/webpayment',
+                                body: {
+                                  'email': "",
+                                  'password': ""
+                                },
+                                headers: {
+                                  HttpHeaders.acceptHeader: 'application/json',
+                                  HttpHeaders.contentTypeHeader:
+                                      'application/json'
+                                }).then((dynamic response) {
+                              final int statusCode = response.statusCode;
+                              if (statusCode < 200 ||
+                                  statusCode > 400 ||
+                                  json == null) {
+                                return;
+                              } else {}
+                            });
+                          }
+                        }).catchError((dynamic onError) {});
+                        _launchURL();
+                      },
                       child: Text(
                         "CHECKOUT",
                         style: TextStyle(color: Colors.white, fontSize: 16),
@@ -250,5 +302,14 @@ class _CartListState extends State<CartList> {
             ));
       },
     );
+  }
+
+  void _launchURL() async {
+    const url = 'https://flutter.dev';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 }

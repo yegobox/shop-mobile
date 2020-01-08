@@ -1,19 +1,29 @@
 class User {
-  String username;
+  String firstName;
   String email;
+  String passwordConfirmation;
+  String phone;
   String password;
-  User({this.username, this.email, this.password});
+  User(
+      {this.firstName,
+      this.email,
+      this.password,
+      this.passwordConfirmation,
+      this.phone});
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      username: json['username'],
-      email: json['email'],
-      password: json['password']
-    );
+        firstName: json['username'],
+        passwordConfirmation: json['passwordConfirmation'],
+        phone: json['phone'],
+        email: json['email'],
+        password: json['password']);
   }
 }
 
 class UserCredential {
   String usernameOrEmail;
+  String passwordConfirmation;
+  String phone;
   String password;
   UserCredential({this.usernameOrEmail, this.password});
 }

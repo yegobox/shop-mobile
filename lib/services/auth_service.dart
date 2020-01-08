@@ -17,14 +17,12 @@ class AuthService {
     }, headers: {
       HttpHeaders.acceptHeader: 'application/json'
     });
-    print(response.statusCode);
     if (response.statusCode == 200) {
       // If the call to the server was successful, parse the JSON.
       // return User.fromJson(json.decode(response.body));
       setUser(response.body);
       return jsonDecode(response.body);
     } else {
-      print(response.body);
       if (response.statusCode == 403) {
         Fluttertoast.showToast(
             msg: "Invalid Credentials",
@@ -39,7 +37,7 @@ class AuthService {
 
   Future<Map> register(User user) async {
     final response = await http.post('$BASE_URL/api/customer/register', body: {
-      'username': user.username,
+      'username': user.firstName,
       'password': user.password,
       'email': user.email
     });

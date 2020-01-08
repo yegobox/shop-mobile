@@ -5,5 +5,13 @@
   "PERMISION": "You must accept permissions, to send order with application",
   "BUY": "Buy",
   "PRODUCT_DETAILS": "Product Detail",
-  "CART": "Items in your cart"
+  "CART": "Items in your cart",
+  "FIRSTNAME": "First Name",
+  "ENTERUSERNAME": "Enter Username",
+  "ENTEREMAIL": "Please Enter Email Address",
+  "PHONENUMBER": "Phone number",
+  "PLEASEENTERPASSWORD": "Please Enter Password",
+  "PLEASEENTERPASSWORDCONFIRMATION": "Please Enter Confirm Password",
+  "PASSWORDDONOTMATCH": "Password fields don't match",
+  "ACCOUNTCREATED": "Your account has been created"
 }
