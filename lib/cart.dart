@@ -8,6 +8,7 @@ import 'package:flutter_scaffold/services/auth_service.dart';
 import 'package:flutter_scaffold/shop/orange_token.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -255,17 +256,15 @@ class _CartListState extends State<CartList> {
                         (BuildContext context, AuthBlock auth, Widget child) {
                       return RaisedButton(
                         onPressed: () {
-                          //TODO: check for user auth is no user then go to login
-                          //TODO: foreach carts and submit to addToCart to web
-                          //TODO: associate this cart with address get address from current logged in user object
-                          //TODO: get the token then on getting the token do other stuff so we avoid token being expired
+                          //TODO: get the token then from orange on getting the token do other stuff so we avoid token being expired
                           //TODO: finally send orange info with cart_order_id from shop.
                           //TODO: prepare endoint to listen to to confirm payment... from orange
                           //TODO: make shop endpoint for upload audio and show audio in dashboard with user who sent the audio
                           //TODO: upload the audio recorded to the server
-//                          auth.user
-                          decideAuthIsNeeded();
 
+                          decideAuthIsNeeded(carts);
+
+                          return;
                           http.post("https://api.orange.com/oauth/v2/token",
                               body: {
                                 "grant_type": "client_credentials"
@@ -303,11 +302,13 @@ class _CartListState extends State<CartList> {
                                     statusCode > 400 ||
                                     json == null) {
                                   return;
-                                } else {}
+                                } else {
+                                  print(response);
+//                                  _launchURL();
+                                }
                               });
                             }
                           }).catchError((dynamic onError) {});
-                          _launchURL();
                         },
                         child: Text(
                           "CHECKOUT",
@@ -332,15 +333,15 @@ class _CartListState extends State<CartList> {
     }
   }
 
-  decideAuthIsNeeded() async {
+  decideAuthIsNeeded(List<CartData> carts) async {
     var _user = await _authService.getUser();
-    print(_user.values.toList()[0]);
     if (_user != null) {
       setState(() {
         _isLoggedIn = true;
       });
 
       _token = _user.values.toList()[0];
+      submitCart(carts);
     } else {
       toast(AppLocalizations.of(context).translate('YOUMUSTBELOGGEDIN'));
       Navigator.pop(context);
@@ -361,5 +362,46 @@ class _CartListState extends State<CartList> {
       textColor: Colors.white,
       fontSize: 16.0,
     );
+  }
+
+  submitCart(List<CartData> carts) async {
+    //NOTE:use this optimal solution to post many files or data on server
+
+    try {
+      List<Response> list = await Future.wait(carts.map((cart) => http.post(
+              "https://shop.yegobox.com/api/checkout/cart/add/${cart.refId.toString()}",
+              body: {
+                'product_id': cart.refId.toString(),
+                'quantity': cart.quantity.toString(),
+                'token': _token
+              },
+              headers: {
+                HttpHeaders.acceptHeader: 'application/json'
+              })));
+
+      return list.map((response) {
+        saveShipping();
+      }).toList();
+    } catch (e) {
+      print("got error bbut it is fine");
+    }
+  }
+
+  void saveShipping() async {
+    var shipping = await http.post(
+        'https://shop.yegobox.com/api/checkout/save-shipping',
+        body: json
+            .encode({"token": _token, "shipping_method": "flatrate_flatrate"}),
+        headers: {
+          HttpHeaders.acceptHeader: 'application/json',
+          HttpHeaders.contentTypeHeader: 'application/json'
+        });
+    final int statusCode = shipping.statusCode;
+    if (statusCode < 200 || statusCode > 400 || json == null) {
+      print(shipping.body);
+      return;
+    } else {
+      print(shipping.body);
+    }
   }
 }

@@ -77,7 +77,7 @@ class AuthBlock extends ChangeNotifier {
   login(UserCredential userCredential, {BuildContext context}) async {
     loading = true;
     loadingType = 'login';
-    await _authService.login(userCredential);
+    await _authService.login(userCredential, context: context);
     setUser();
     if (token != null) {
       loading = false;
