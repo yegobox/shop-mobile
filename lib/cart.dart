@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_scaffold/localizations.dart';
 import 'package:flutter_scaffold/services/auth_service.dart';
 import 'package:flutter_scaffold/shop/orange_token.dart';
+import 'package:flutter_scaffold/shop/order_response.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
@@ -263,52 +264,6 @@ class _CartListState extends State<CartList> {
                           //TODO: upload the audio recorded to the server
 
                           decideAuthIsNeeded(carts, auth);
-
-                          return;
-                          http.post("https://api.orange.com/oauth/v2/token",
-                              body: {
-                                "grant_type": "client_credentials"
-                              },
-                              headers: {
-                                HttpHeaders.authorizationHeader:
-                                    "Basic U0hWdmN5UW12U2sxanhydlBBWm1STWFhUTQ5eENQMTg6TmpkU09OT0dxb2xhYXdFNw==",
-                                HttpHeaders.contentTypeHeader:
-                                    "application/x-www-form-urlencoded",
-                              }).then((dynamic response) {
-                            final int statusCode = response.statusCode;
-                            if (statusCode < 200 ||
-                                statusCode > 400 ||
-                                json == null) {
-                              return;
-                            } else {
-                              OrangeToken orangeToken =
-                                  orangeTokenFromJson(response.body);
-
-                              //now finalize creating a payment session
-                              http.post(
-                                  'https://api.orange.com/orange-money-webpay/dev/v1/webpayment',
-                                  body: {
-                                    'email': "",
-                                    'password': ""
-                                  },
-                                  headers: {
-                                    HttpHeaders.acceptHeader:
-                                        'application/json',
-                                    HttpHeaders.contentTypeHeader:
-                                        'application/json'
-                                  }).then((dynamic response) {
-                                final int statusCode = response.statusCode;
-                                if (statusCode < 200 ||
-                                    statusCode > 400 ||
-                                    json == null) {
-                                  return;
-                                } else {
-                                  print(response);
-//                                  _launchURL();
-                                }
-                              });
-                            }
-                          }).catchError((dynamic onError) {});
                         },
                         child: Text(
                           "CHECKOUT",
@@ -334,14 +289,15 @@ class _CartListState extends State<CartList> {
   }
 
   decideAuthIsNeeded(List<CartData> carts, AuthBlock auth) async {
-    var _user = await _authService.getUser();
+    var _user = auth.user['token'];
     if (_user != null) {
       setState(() {
         _isLoggedIn = true;
       });
       setState(() {
-        _token = _user.values.toList()[0];
+        _token = _user;
       });
+//      print(_token);
       submitCart(carts, auth);
     } else {
       toast(AppLocalizations.of(context).translate('YOUMUSTBELOGGEDIN'));
@@ -374,10 +330,12 @@ class _CartListState extends State<CartList> {
               body: {
                 'product_id': cart.refId.toString(),
                 'quantity': cart.quantity.toString(),
-                'token': _token
+                'token': auth.user['token']
               },
               headers: {
-                HttpHeaders.acceptHeader: 'application/json'
+                HttpHeaders.acceptHeader: 'application/json',
+                HttpHeaders.contentTypeHeader:
+                    'application/x-www-form-urlencoded'
               })));
 
       return list.map((response) {
@@ -385,14 +343,17 @@ class _CartListState extends State<CartList> {
       }).toList();
     } catch (e) {
       print("got error but it is fine");
+      print(e);
     }
   }
 
   void saveShipping(AuthBlock auth) async {
     var shipping = await http.post(
         'https://shop.yegobox.com/api/checkout/save-shipping',
-        body: json
-            .encode({"token": _token, "shipping_method": "flatrate_flatrate"}),
+        body: json.encode({
+          "token": auth.user['token'],
+          "shipping_method": "flatrate_flatrate"
+        }),
         headers: {
           HttpHeaders.acceptHeader: 'application/json',
           HttpHeaders.contentTypeHeader: 'application/json'
@@ -405,7 +366,7 @@ class _CartListState extends State<CartList> {
       var payment =
           await http.post('https://shop.yegobox.com/api/checkout/save-payment',
               body: json.encode({
-                "token": _token,
+                "token": auth.user['token'],
                 "shipping_method": "flatrate_flatrate",
                 "payment": {"method": "cashondelivery"}
               }),
@@ -418,46 +379,106 @@ class _CartListState extends State<CartList> {
         return;
       } else {
         //then save address
-        var address = await http.post(
-            'https://shop.yegobox.com/api/checkout/save-address',
-            body: json.encode({
-              "token": _token,
-              "billing": {
-                "address1": {"0": "h23"},
-                "use_for_shipping": "true",
-                "first_name": auth.user['data']['name'],
-                "last_name": auth.user['data']['first_name'],
-                "email": auth.user['data']['email'],
-                "city": "none",
-                "state": "none",
-                "postcode": "none",
-                "country": "none",
-                "phone": auth.user['data']['phone']
-              },
-              "shipping": {
-                "address1": {"0": ""}
-              }
-            }));
+        var address = await http
+            .post('https://shop.yegobox.com/api/checkout/save-address',
+                body: json.encode({
+                  "token": auth.user['token'],
+                  "billing": {
+                    "address1": {"0": "h23"},
+                    "use_for_shipping": "true",
+                    "first_name": auth.user['data']['name'],
+                    "last_name": auth.user['data']['first_name'],
+                    "email": auth.user['data']['email'],
+                    "city": "none",
+                    "state": "none",
+                    "postcode": "none",
+                    "country": "none",
+                    "phone": auth.user['data']['phone'] ?? "45555"
+                  },
+                  "shipping": {
+                    "address1": {"0": ""}
+                  }
+                }),
+                headers: {
+              HttpHeaders.acceptHeader: 'application/json',
+              HttpHeaders.contentTypeHeader: 'application/json'
+            });
         final int statusCode = address.statusCode;
+
         if (statusCode < 200 || statusCode > 400 || json == null) {
           return;
         } else {
           var order = await http.post(
               'https://shop.yegobox.com/api/checkout/save-order',
-              body: json.encode({"token": _token}),
+              body: json.encode({"token": auth.user['token']}),
               headers: {
                 HttpHeaders.acceptHeader: 'application/json',
                 HttpHeaders.contentTypeHeader: 'application/json'
               });
           final int statusCode = order.statusCode;
+
           if (statusCode < 200 || statusCode > 400 || json == null) {
-            toast(AppLocalizations.of(context).translate('YOUMUSTBELOGGEDIN'));
-            Navigator.pop(context);
-            Navigator.pushNamed(context, 'auth');
             return;
           } else {
-            //then call orange for final confirmation.
-            print(order.body);
+            //call orange to get the token.
+            OrderResponseFinal orderResponse =
+                orderResponseFinalFromJson(order.body);
+
+            http.post("https://api.orange.com/oauth/v2/token", body: {
+              "grant_type": "client_credentials"
+            }, headers: {
+              HttpHeaders.acceptHeader: "application/json",
+              HttpHeaders.authorizationHeader:
+                  "Basic U0hWdmN5UW12U2sxanhydlBBWm1STWFhUTQ5eENQMTg6TmpkU09OT0dxb2xhYXdFNw==",
+              HttpHeaders.contentTypeHeader:
+                  "application/x-www-form-urlencoded",
+            }).then((dynamic orange) {
+              final int statusCode = orange.statusCode;
+              if (statusCode < 200 || statusCode > 400 || json == null) {
+                return;
+              } else {
+                print(orderResponse.order.id.toString());
+                OrangeToken orangeTokenResponse =
+                    orangeTokenFromJson(orange.body);
+
+                //now finalize creating a payment session
+                try {
+                  http.post(
+                      'https://api.orange.com/orange-money-webpay/dev/v1/webpayment',
+                      body: json.encode({
+                        "merchant_key": "6b7cd337",
+                        "currency": "OUV",
+                        "order_id": "MY_ORDER_ID_08" +
+                            orderResponse.order.id.toString(),
+                        "amount": 1200,
+                        "return_url": "http://myvirtualshop.webnode.es",
+                        "cancel_url":
+                            "http://myvirtualshop.webnode.es/txncncld/",
+                        "notif_url": "https://shop.yegobox.com/notify",
+                        "lang": "en",
+                        "reference": "ref Merchant"
+                      }),
+                      headers: {
+                        HttpHeaders.acceptHeader: 'application/json',
+                        HttpHeaders.authorizationHeader:
+                            'Basic ' + orangeTokenResponse.accessToken,
+                        HttpHeaders.contentTypeHeader: 'application/json'
+                      }).then((dynamic code) {
+                    final int statusCode = code.statusCode;
+                    if (statusCode < 200 || statusCode > 400 || json == null) {
+                      return;
+                    } else {
+                      print(code);
+                      // _launchURL();
+                    }
+                  });
+                } catch (e) {
+                  toast("Failed to process payment try again");
+                }
+              }
+            }).catchError((dynamic onError) {
+              print(onError);
+            });
           }
         }
       }

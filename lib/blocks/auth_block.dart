@@ -69,7 +69,7 @@ class AuthBlock extends ChangeNotifier {
 
     isLoggedIn = _user == null ? false : true;
     if (isLoggedIn) {
-      token = _user.values.toList()[0];
+      token = _user['token'];
     }
     notifyListeners();
   }

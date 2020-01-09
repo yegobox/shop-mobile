@@ -157,7 +157,6 @@ class _HomeState extends State<Home> {
                                                   Provider.of<Database>(
                                                       context);
                                               final cart = CartData(
-                                                  id: i.id,
                                                   refId: i.id,
                                                   price: i.price.toString(),
                                                   name: i.name,
@@ -196,11 +195,12 @@ class _HomeState extends State<Home> {
                                                       fit: BoxFit.cover,
                                                       imageUrl: i.images[0]
                                                           .largeImageUrl,
-                                                      placeholder: (context,
-                                                              url) =>
-                                                          Center(
-                                                              child:
-                                                                  CircularProgressIndicator()),
+                                                      placeholder:
+                                                          (context, url) =>
+                                                              Center(
+                                                        child:
+                                                            CircularProgressIndicator(),
+                                                      ),
                                                       errorWidget: (context,
                                                               url, error) =>
                                                           new Icon(Icons.error),
