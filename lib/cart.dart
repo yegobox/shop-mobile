@@ -27,6 +27,7 @@ class _CartListState extends State<CartList> {
   AuthService _authService = AuthService();
 
   bool _isLoggedIn = false;
+  bool _isProcessingPayment = false;
 
   var _token;
 
@@ -42,6 +43,7 @@ class _CartListState extends State<CartList> {
       stream: dao.getAllCarts(),
       builder: (context, AsyncSnapshot<List<CartData>> snapshot) {
         List<CartData> carts = snapshot.data ?? List();
+        totalSum = 0;
         if (carts.length > 0) {
           carts.forEach((data) => {totalSum += int.parse(data.price)});
         }
@@ -258,18 +260,23 @@ class _CartListState extends State<CartList> {
                         (BuildContext context, AuthBlock auth, Widget child) {
                       return RaisedButton(
                         onPressed: () {
-                          //TODO: get the token then from orange on getting the token do other stuff so we avoid token being expired
-                          //TODO: finally send orange info with cart_order_id from shop.
-                          //TODO: prepare endoint to listen to to confirm payment... from orange
                           //TODO: make shop endpoint for upload audio and show audio in dashboard with user who sent the audio
                           //TODO: upload the audio recorded to the server
-
+                          //TODO: show loading button and disable for second click on checkout
+                          //TODO: swipe to delete should delete an item
+                          //TODO: option to increase quantity on swipe right.
                           decideAuthIsNeeded(carts, auth);
                         },
-                        child: Text(
-                          "CHECKOUT",
-                          style: TextStyle(color: Colors.white, fontSize: 16),
-                        ),
+                        child: _isProcessingPayment
+                            ? CircularProgressIndicator(
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                              )
+                            : Text(
+                                "CHECKOUT",
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 16),
+                              ),
                       );
                     }),
                   ),
@@ -296,8 +303,10 @@ class _CartListState extends State<CartList> {
       });
       setState(() {
         _token = _user;
+        _isProcessingPayment = true;
       });
-//      print(_token);
+      print("hello_finishing");
+
       submitCart(carts, auth);
     } else {
       toast(AppLocalizations.of(context).translate('YOUMUSTBELOGGEDIN'));
@@ -342,6 +351,9 @@ class _CartListState extends State<CartList> {
         saveShipping(auth);
       }).toList();
     } catch (e) {
+      setState(() {
+        _isProcessingPayment = false;
+      });
       print("got error but it is fine");
       print(e);
     }
@@ -360,6 +372,9 @@ class _CartListState extends State<CartList> {
         });
     final int statusCode = shipping.statusCode;
     if (statusCode < 200 || statusCode > 400 || json == null) {
+      setState(() {
+        _isProcessingPayment = false;
+      });
       return;
     } else {
       //on save shipping then save-payment
@@ -376,6 +391,9 @@ class _CartListState extends State<CartList> {
           });
       final int statusCode = payment.statusCode;
       if (statusCode < 200 || statusCode > 400 || json == null) {
+        setState(() {
+          _isProcessingPayment = false;
+        });
         return;
       } else {
         //then save address
@@ -406,6 +424,9 @@ class _CartListState extends State<CartList> {
         final int statusCode = address.statusCode;
 
         if (statusCode < 200 || statusCode > 400 || json == null) {
+          setState(() {
+            _isProcessingPayment = false;
+          });
           return;
         } else {
           var order = await http.post(
@@ -420,7 +441,6 @@ class _CartListState extends State<CartList> {
           if (statusCode < 200 || statusCode > 400 || json == null) {
             return;
           } else {
-            //call orange to get the token.
             OrderResponseFinal orderResponse =
                 orderResponseFinalFromJson(order.body);
 
@@ -435,9 +455,11 @@ class _CartListState extends State<CartList> {
             }).then((dynamic orange) {
               final int statusCode = orange.statusCode;
               if (statusCode < 200 || statusCode > 400 || json == null) {
+                setState(() {
+                  _isProcessingPayment = false;
+                });
                 return;
               } else {
-                print(orderResponse.order.id.toString());
                 OrangeToken orangeTokenResponse =
                     orangeTokenFromJson(orange.body);
 
@@ -465,8 +487,14 @@ class _CartListState extends State<CartList> {
                   final int statusCode = code.statusCode;
 
                   if (statusCode < 200 || statusCode > 400 || json == null) {
+                    setState(() {
+                      _isProcessingPayment = false;
+                    });
                     return;
                   } else {
+                    setState(() {
+                      _isProcessingPayment = false;
+                    });
                     WePaymentSession wePaymentSession =
                         wePaymentSessionFromJson(code.body);
                     _launchURL(wePaymentSession.paymentUrl);
@@ -474,6 +502,9 @@ class _CartListState extends State<CartList> {
                 });
               }
             }).catchError((dynamic onError) {
+              setState(() {
+                _isProcessingPayment = false;
+              });
               print(onError);
             });
           }
