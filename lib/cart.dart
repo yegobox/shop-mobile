@@ -7,6 +7,7 @@ import 'package:flutter_scaffold/localizations.dart';
 import 'package:flutter_scaffold/services/auth_service.dart';
 import 'package:flutter_scaffold/shop/orange_token.dart';
 import 'package:flutter_scaffold/shop/order_response.dart';
+import 'package:flutter_scaffold/shop/web_payment_session.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
@@ -279,8 +280,7 @@ class _CartListState extends State<CartList> {
     );
   }
 
-  void _launchURL() async {
-    const url = 'https://flutter.dev';
+  void _launchURL(String url) async {
     if (await canLaunch(url)) {
       await launch(url);
     } else {
@@ -442,39 +442,36 @@ class _CartListState extends State<CartList> {
                     orangeTokenFromJson(orange.body);
 
                 //now finalize creating a payment session
-                try {
-                  http.post(
-                      'https://api.orange.com/orange-money-webpay/dev/v1/webpayment',
-                      body: json.encode({
-                        "merchant_key": "6b7cd337",
-                        "currency": "OUV",
-                        "order_id": "MY_ORDER_ID_08" +
-                            orderResponse.order.id.toString(),
-                        "amount": 1200,
-                        "return_url": "http://myvirtualshop.webnode.es",
-                        "cancel_url":
-                            "http://myvirtualshop.webnode.es/txncncld/",
-                        "notif_url": "https://shop.yegobox.com/notify",
-                        "lang": "en",
-                        "reference": "ref Merchant"
-                      }),
-                      headers: {
-                        HttpHeaders.acceptHeader: 'application/json',
-                        HttpHeaders.authorizationHeader:
-                            'Basic ' + orangeTokenResponse.accessToken,
-                        HttpHeaders.contentTypeHeader: 'application/json'
-                      }).then((dynamic code) {
-                    final int statusCode = code.statusCode;
-                    if (statusCode < 200 || statusCode > 400 || json == null) {
-                      return;
-                    } else {
-                      print(code);
-                      // _launchURL();
-                    }
-                  });
-                } catch (e) {
-                  toast("Failed to process payment try again");
-                }
+                http.post(
+                    'https://api.orange.com/orange-money-webpay/dev/v1/webpayment',
+                    body: json.encode({
+                      "merchant_key": "6b7cd337",
+                      "currency": "OUV",
+                      "order_id":
+                          "MY_ORDER_ID_" + orderResponse.order.id.toString(),
+                      "amount": double.parse(orderResponse.order.grandTotal),
+                      "return_url": "http://myvirtualshop.webnode.es",
+                      "cancel_url": "http://myvirtualshop.webnode.es/txncncld/",
+                      "notif_url": "https://shop.yegobox.com/notify",
+                      "lang": "en",
+                      "reference": "ref Merchant"
+                    }),
+                    headers: {
+                      HttpHeaders.acceptHeader: 'application/json',
+                      HttpHeaders.authorizationHeader:
+                          'Bearer ' + orangeTokenResponse.accessToken,
+                      HttpHeaders.contentTypeHeader: 'application/json'
+                    }).then((dynamic code) {
+                  final int statusCode = code.statusCode;
+
+                  if (statusCode < 200 || statusCode > 400 || json == null) {
+                    return;
+                  } else {
+                    WePaymentSession wePaymentSession =
+                        wePaymentSessionFromJson(code.body);
+                    _launchURL(wePaymentSession.paymentUrl);
+                  }
+                });
               }
             }).catchError((dynamic onError) {
               print(onError);
