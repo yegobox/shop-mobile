@@ -13,5 +13,6 @@
   "PLEASEENTERPASSWORD": "Please Enter Password",
   "PLEASEENTERPASSWORDCONFIRMATION": "Please Enter Confirm Password",
   "PASSWORDDONOTMATCH": "Password fields don't match",
-  "ACCOUNTCREATED": "Your account has been created"
+  "ACCOUNTCREATED": "Your account has been created",
+  "YOUMUSTBELOGGEDIN": "You must be logged in to complete checkout."
 }

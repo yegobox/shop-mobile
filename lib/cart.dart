@@ -4,7 +4,9 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_scaffold/localizations.dart';
+import 'package:flutter_scaffold/services/auth_service.dart';
 import 'package:flutter_scaffold/shop/orange_token.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -19,6 +21,11 @@ class CartList extends StatefulWidget {
 
 class _CartListState extends State<CartList> {
   var totalSum = 0;
+  AuthService _authService = AuthService();
+
+  bool _isLoggedIn = false;
+
+  var _token;
 
   @override
   void initState() {
@@ -248,15 +255,17 @@ class _CartListState extends State<CartList> {
                         (BuildContext context, AuthBlock auth, Widget child) {
                       return RaisedButton(
                         onPressed: () {
-                          //TODO: check for user auth
-//                          auth.user
-
-                          return;
-
+                          //TODO: check for user auth is no user then go to login
                           //TODO: foreach carts and submit to addToCart to web
-                          //TODO: add pusher to listen on payment completion then submit another request to complete payment on the server so it can be saved on the dashboard
-                          //TODO: implement local checkout to open Orange webView to complete payment.
+                          //TODO: associate this cart with address get address from current logged in user object
                           //TODO: get the token then on getting the token do other stuff so we avoid token being expired
+                          //TODO: finally send orange info with cart_order_id from shop.
+                          //TODO: prepare endoint to listen to to confirm payment... from orange
+                          //TODO: make shop endpoint for upload audio and show audio in dashboard with user who sent the audio
+                          //TODO: upload the audio recorded to the server
+//                          auth.user
+                          decideAuthIsNeeded();
+
                           http.post("https://api.orange.com/oauth/v2/token",
                               body: {
                                 "grant_type": "client_credentials"
@@ -321,5 +330,36 @@ class _CartListState extends State<CartList> {
     } else {
       throw 'Could not launch $url';
     }
+  }
+
+  decideAuthIsNeeded() async {
+    var _user = await _authService.getUser();
+    print(_user.values.toList()[0]);
+    if (_user != null) {
+      setState(() {
+        _isLoggedIn = true;
+      });
+
+      _token = _user.values.toList()[0];
+    } else {
+      toast(AppLocalizations.of(context).translate('YOUMUSTBELOGGEDIN'));
+      Navigator.pop(context);
+      Navigator.pushNamed(context, 'auth');
+      setState(() {
+        _isLoggedIn = false;
+      });
+    }
+  }
+
+  void toast(String message) {
+    Fluttertoast.showToast(
+      msg: "$message",
+      toastLength: Toast.LENGTH_LONG,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIos: 1,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
   }
 }

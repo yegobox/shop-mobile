@@ -13,5 +13,6 @@
   "PLEASEENTERPASSWORD": "Veuillez entrer le mot de passe",
   "PLEASEENTERPASSWORDCONFIRMATION": "Veuillez entrer Confirmer le mot de passe",
   "PASSWORDDONOTMATCH": "Les champs de mot de passe ne correspondent pas",
-  "ACCOUNTCREATED": "Votre compte a été créé"
+  "ACCOUNTCREATED": "Votre compte a été créé",
+  "YOUMUSTBELOGGEDIN": "Vous devez être connecté pour terminer le paiement."
 }
