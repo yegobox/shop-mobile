@@ -26,7 +26,12 @@ class Cart extends Table {
   IntColumn get quantity => integer()();
 }
 
-@UseMoor(tables: [User, Cart], daos: [UserDao, CartDao])
+class CartCount extends Table {
+  IntColumn get count => integer()();
+}
+
+@UseMoor(
+    tables: [User, Cart, CartCount], daos: [UserDao, CartDao, CartCountDao])
 class Database extends _$Database {
   Database()
       : super(FlutterQueryExecutor.inDatabaseFolder(
@@ -67,6 +72,17 @@ class CartDao extends DatabaseAccessor<Database> with _$UserDaoMixin {
       return rows.map((row) => CartData.fromData(row.data, db)).toList();
     });
   }
+}
+
+@UseDao(tables: [CartCount])
+class CartCountDao extends DatabaseAccessor<Database> with _$UserDaoMixin {
+  final Database db;
+
+  CartCountDao(this.db) : super(db);
+
+  Future insertCount(Insertable<CartCountData> count) =>
+      into(db.cartCount).insert(count);
+  Stream<List<CartCountData>> watchCount() => select(db.cartCount).watch();
 }
 
 @UseDao(tables: [User])

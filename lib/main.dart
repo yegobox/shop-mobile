@@ -21,7 +21,8 @@ void main() {
     providers: [
       ChangeNotifierProvider<AuthBlock>.value(value: AuthBlock()),
       Provider(builder: (_) => Database()),
-      Provider(builder: (_) => Database().cartDao)
+      Provider(builder: (_) => Database().cartDao),
+      Provider(builder: (_) => Database().cartCountDao)
     ],
     child: MaterialApp(
       localizationsDelegates: [

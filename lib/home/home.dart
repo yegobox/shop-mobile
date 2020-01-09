@@ -57,6 +57,7 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    final dao = Provider.of<CartCountDao>(context);
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -84,13 +85,24 @@ class _HomeState extends State<Home> {
                     onTap: () {
                       Navigator.pushNamed(context, 'cart');
                     },
-                    child: Badge(
-                      position: BadgePosition.topLeft(),
-                      badgeContent: Text(
-                        cartCount.toString(),
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      child: Icon(Icons.shopping_cart),
+                    child: StreamBuilder(
+                      stream: dao.watchCount(),
+                      builder: (context,
+                          AsyncSnapshot<List<CartCountData>> snapshot) {
+                        List<CartCountData> carts = snapshot.data ?? List();
+                        var _totalCount = 0;
+                        if (carts.length > 0) {
+                          carts.forEach((data) => {_totalCount += data.count});
+                        }
+                        return Badge(
+                          position: BadgePosition.topLeft(),
+                          badgeContent: Text(
+                            _totalCount.toString(),
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          child: Icon(Icons.shopping_cart),
+                        );
+                      },
                     ),
                   )
                 ],
@@ -164,15 +176,16 @@ class _HomeState extends State<Home> {
                                                       i.images[0].largeImageUrl,
                                                   quantity: 1);
                                               setState(() {
-                                                cartCount += 1;
+//                                                cartCount += 1;
+                                                database.cartCountDao
+                                                    .insertCount(CartCountData(
+                                                        count: 1));
                                               });
                                               database.cartDao
                                                   .isRowExist(i.id)
                                                   .listen((data) => {
                                                         if (data.length == 0)
                                                           {
-                                                            cartCount =
-                                                                cart.quantity,
                                                             database.cartDao
                                                                 .insertCart(
                                                                     cart)
@@ -361,7 +374,7 @@ class _HomeState extends State<Home> {
                 await getApplicationDocumentsDirectory();
             path = appDocDirectory.path + '/' + _controller.text;
           }
-          print("Start recording: $path");
+//          print("Start recording: $path");
           await AudioRecorder.start(
               path: path, audioOutputFormat: AudioOutputFormat.AAC);
         } else {

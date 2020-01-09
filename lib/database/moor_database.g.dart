@@ -901,18 +901,150 @@ class $CartTable extends Cart with TableInfo<$CartTable, CartData> {
   }
 }
 
+class CartCountData extends DataClass implements Insertable<CartCountData> {
+  final int count;
+  CartCountData({@required this.count});
+  factory CartCountData.fromData(
+      Map<String, dynamic> data, GeneratedDatabase db,
+      {String prefix}) {
+    final effectivePrefix = prefix ?? '';
+    final intType = db.typeSystem.forDartType<int>();
+    return CartCountData(
+      count: intType.mapFromDatabaseResponse(data['${effectivePrefix}count']),
+    );
+  }
+  factory CartCountData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+    return CartCountData(
+      count: serializer.fromJson<int>(json['count']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson(
+      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+    return {
+      'count': serializer.toJson<int>(count),
+    };
+  }
+
+  @override
+  CartCountCompanion createCompanion(bool nullToAbsent) {
+    return CartCountCompanion(
+      count:
+          count == null && nullToAbsent ? const Value.absent() : Value(count),
+    );
+  }
+
+  CartCountData copyWith({int count}) => CartCountData(
+        count: count ?? this.count,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('CartCountData(')..write('count: $count')..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => $mrjf(count.hashCode);
+  @override
+  bool operator ==(other) =>
+      identical(this, other) ||
+      (other is CartCountData && other.count == this.count);
+}
+
+class CartCountCompanion extends UpdateCompanion<CartCountData> {
+  final Value<int> count;
+  const CartCountCompanion({
+    this.count = const Value.absent(),
+  });
+  CartCountCompanion.insert({
+    @required int count,
+  }) : count = Value(count);
+  CartCountCompanion copyWith({Value<int> count}) {
+    return CartCountCompanion(
+      count: count ?? this.count,
+    );
+  }
+}
+
+class $CartCountTable extends CartCount
+    with TableInfo<$CartCountTable, CartCountData> {
+  final GeneratedDatabase _db;
+  final String _alias;
+  $CartCountTable(this._db, [this._alias]);
+  final VerificationMeta _countMeta = const VerificationMeta('count');
+  GeneratedIntColumn _count;
+  @override
+  GeneratedIntColumn get count => _count ??= _constructCount();
+  GeneratedIntColumn _constructCount() {
+    return GeneratedIntColumn(
+      'count',
+      $tableName,
+      false,
+    );
+  }
+
+  @override
+  List<GeneratedColumn> get $columns => [count];
+  @override
+  $CartCountTable get asDslTable => this;
+  @override
+  String get $tableName => _alias ?? 'cart_count';
+  @override
+  final String actualTableName = 'cart_count';
+  @override
+  VerificationContext validateIntegrity(CartCountCompanion d,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    if (d.count.present) {
+      context.handle(
+          _countMeta, count.isAcceptableValue(d.count.value, _countMeta));
+    } else if (count.isRequired && isInserting) {
+      context.missing(_countMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => <GeneratedColumn>{};
+  @override
+  CartCountData map(Map<String, dynamic> data, {String tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
+    return CartCountData.fromData(data, _db, prefix: effectivePrefix);
+  }
+
+  @override
+  Map<String, Variable> entityToSql(CartCountCompanion d) {
+    final map = <String, Variable>{};
+    if (d.count.present) {
+      map['count'] = Variable<int, IntType>(d.count.value);
+    }
+    return map;
+  }
+
+  @override
+  $CartCountTable createAlias(String alias) {
+    return $CartCountTable(_db, alias);
+  }
+}
+
 abstract class _$Database extends GeneratedDatabase {
   _$Database(QueryExecutor e) : super(SqlTypeSystem.defaultInstance, e);
   $UserTable _user;
   $UserTable get user => _user ??= $UserTable(this);
   $CartTable _cart;
   $CartTable get cart => _cart ??= $CartTable(this);
+  $CartCountTable _cartCount;
+  $CartCountTable get cartCount => _cartCount ??= $CartCountTable(this);
   UserDao _userDao;
   UserDao get userDao => _userDao ??= UserDao(this as Database);
   CartDao _cartDao;
   CartDao get cartDao => _cartDao ??= CartDao(this as Database);
+  CartCountDao _cartCountDao;
+  CartCountDao get cartCountDao =>
+      _cartCountDao ??= CartCountDao(this as Database);
   @override
-  List<TableInfo> get allTables => [user, cart];
+  List<TableInfo> get allTables => [user, cart, cartCount];
 }
 
 // **************************************************************************
@@ -921,6 +1053,9 @@ abstract class _$Database extends GeneratedDatabase {
 
 mixin _$CartDaoMixin on DatabaseAccessor<Database> {
   $CartTable get cart => db.cart;
+}
+mixin _$CartCountDaoMixin on DatabaseAccessor<Database> {
+  $CartCountTable get cartCount => db.cartCount;
 }
 mixin _$UserDaoMixin on DatabaseAccessor<Database> {
   $UserTable get user => db.user;
