@@ -262,7 +262,7 @@ class _CartListState extends State<CartList> {
                           //TODO: make shop endpoint for upload audio and show audio in dashboard with user who sent the audio
                           //TODO: upload the audio recorded to the server
 
-                          decideAuthIsNeeded(carts);
+                          decideAuthIsNeeded(carts, auth);
 
                           return;
                           http.post("https://api.orange.com/oauth/v2/token",
@@ -333,15 +333,16 @@ class _CartListState extends State<CartList> {
     }
   }
 
-  decideAuthIsNeeded(List<CartData> carts) async {
+  decideAuthIsNeeded(List<CartData> carts, AuthBlock auth) async {
     var _user = await _authService.getUser();
     if (_user != null) {
       setState(() {
         _isLoggedIn = true;
       });
-
-      _token = _user.values.toList()[0];
-      submitCart(carts);
+      setState(() {
+        _token = _user.values.toList()[0];
+      });
+      submitCart(carts, auth);
     } else {
       toast(AppLocalizations.of(context).translate('YOUMUSTBELOGGEDIN'));
       Navigator.pop(context);
@@ -364,7 +365,7 @@ class _CartListState extends State<CartList> {
     );
   }
 
-  submitCart(List<CartData> carts) async {
+  submitCart(List<CartData> carts, AuthBlock auth) async {
     //NOTE:use this optimal solution to post many files or data on server
 
     try {
@@ -380,14 +381,14 @@ class _CartListState extends State<CartList> {
               })));
 
       return list.map((response) {
-        saveShipping();
+        saveShipping(auth);
       }).toList();
     } catch (e) {
-      print("got error bbut it is fine");
+      print("got error but it is fine");
     }
   }
 
-  void saveShipping() async {
+  void saveShipping(AuthBlock auth) async {
     var shipping = await http.post(
         'https://shop.yegobox.com/api/checkout/save-shipping',
         body: json
@@ -398,10 +399,68 @@ class _CartListState extends State<CartList> {
         });
     final int statusCode = shipping.statusCode;
     if (statusCode < 200 || statusCode > 400 || json == null) {
-      print(shipping.body);
       return;
     } else {
-      print(shipping.body);
+      //on save shipping then save-payment
+      var payment =
+          await http.post('https://shop.yegobox.com/api/checkout/save-payment',
+              body: json.encode({
+                "token": _token,
+                "shipping_method": "flatrate_flatrate",
+                "payment": {"method": "cashondelivery"}
+              }),
+              headers: {
+            HttpHeaders.acceptHeader: 'application/json',
+            HttpHeaders.contentTypeHeader: 'application/json'
+          });
+      final int statusCode = payment.statusCode;
+      if (statusCode < 200 || statusCode > 400 || json == null) {
+        return;
+      } else {
+        //then save address
+        var address = await http.post(
+            'https://shop.yegobox.com/api/checkout/save-address',
+            body: json.encode({
+              "token": _token,
+              "billing": {
+                "address1": {"0": "h23"},
+                "use_for_shipping": "true",
+                "first_name": auth.user['data']['name'],
+                "last_name": auth.user['data']['first_name'],
+                "email": auth.user['data']['email'],
+                "city": "none",
+                "state": "none",
+                "postcode": "none",
+                "country": "none",
+                "phone": auth.user['data']['phone']
+              },
+              "shipping": {
+                "address1": {"0": ""}
+              }
+            }));
+        final int statusCode = address.statusCode;
+        if (statusCode < 200 || statusCode > 400 || json == null) {
+          return;
+        } else {
+          var order = await http.post(
+              'https://shop.yegobox.com/api/checkout/save-order',
+              body: json.encode({"token": _token}),
+              headers: {
+                HttpHeaders.acceptHeader: 'application/json',
+                HttpHeaders.contentTypeHeader: 'application/json'
+              });
+          final int statusCode = order.statusCode;
+          if (statusCode < 200 || statusCode > 400 || json == null) {
+            toast(AppLocalizations.of(context).translate('YOUMUSTBELOGGEDIN'));
+            Navigator.pop(context);
+            Navigator.pushNamed(context, 'auth');
+            return;
+          } else {
+            //then call orange for final confirmation.
+            print(order.body);
+          }
+        }
+      }
     }
   }
 }
