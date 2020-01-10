@@ -371,6 +371,7 @@ class _HomeState extends State<Home> {
   }
 
   void _recordAudio() async {
+    _startedRecord = 1;
     if (_startedRecord == 1) {
       toast("Recording");
     }
@@ -386,6 +387,7 @@ class _HomeState extends State<Home> {
         .checkPermissionStatus(PermissionGroup.storage)
         .then(_checkRecordPermission);
 
+    print(_startedRecord);
     if (_recordPermissionGranted && _storagePermissionGranted) {
       if (_startedRecord == 2) {
         try {
@@ -440,6 +442,7 @@ class _HomeState extends State<Home> {
       bool isRecording = await AudioRecorder.isRecording;
 //      print("Stop recording: ${recording.path}");
       setState(() {
+        _startedRecord = 0;
         _isRecording = isRecording;
         _recording = recording;
         _fileName = recording.path.split('/')[4];
@@ -456,20 +459,18 @@ class _HomeState extends State<Home> {
     final uploader = FlutterUploader();
     final auth = Provider.of<AuthBlock>(context);
 
-    print(storagePath);
-    print(fileName);
-//    final taskId = await uploader.enqueue(
-//        url: "https://shop.yegobox.com/api/audios", //required: url to upload to
-//        files: [
-//          FileItem(
-//              filename: _fileName, savedDir: _storagePath, fieldname: "file")
-//        ], // required: list of files that you want to upload
-//        method: UploadMethod.POST, // HTTP method  (POST or PUT or PATCH)
-//        headers: {"Bearer": auth.user['token']},
-//        data: {"token": auth.user['token']},
-//        showNotification:
-//            true, // send local notification (android only) for upload status
-//        tag: "upload 1"); // unique tag for upload task
+    final taskId = await uploader.enqueue(
+        url: "https://shop.yegobox.com/api/audios", //required: url to upload to
+        files: [
+          FileItem(
+              filename: fileName, savedDir: storagePath, fieldname: "audio")
+        ], // required: list of files that you want to upload
+        method: UploadMethod.POST, // HTTP method  (POST or PUT or PATCH)
+        headers: {"Bearer": auth.user['token']},
+        data: {"token": auth.user['token']},
+        showNotification:
+            true, // send local notification (android only) for upload status
+        tag: "upload 1"); // unique tag for upload task
   }
 
   FutureOr _checkStoragePermission(PermissionStatus status) {
