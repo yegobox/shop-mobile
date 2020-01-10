@@ -46,6 +46,7 @@ dependencies:
   badges: ^1.1.0
   holding_gesture: ^0.0.3
   permission_handler: ^4.0.0
+  random_string: ^2.0.1
 
 
 dev_dependencies:

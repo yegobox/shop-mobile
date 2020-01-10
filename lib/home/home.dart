@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:io' as io;
 import 'dart:math';
 
 import 'package:audio_recorder/audio_recorder.dart';
@@ -17,7 +16,6 @@ import 'package:flutter_uploader/flutter_uploader.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:holding_gesture/holding_gesture.dart';
 import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
@@ -392,24 +390,20 @@ class _HomeState extends State<Home> {
       if (_startedRecord == 2) {
         try {
           if (await AudioRecorder.hasPermissions) {
-            if (_controller.text != null && _controller.text != "") {
+//            if (_controller.text != null && _controller.text != "") {
 //              String path = _controller.text;
-              io.Directory appDocDirectory =
-                  await getApplicationDocumentsDirectory();
-              var path = appDocDirectory.path;
-//              print(path);
-              if (!_controller.text.contains('/')) {
-                io.Directory appDocDirectory =
-                    await getApplicationDocumentsDirectory();
-                path = appDocDirectory.path;
-              }
-
-              print("Start recording: $path");
-              await AudioRecorder.start(
-                  path: path, audioOutputFormat: AudioOutputFormat.AAC);
-            } else {
-              await AudioRecorder.start();
-            }
+//              if (!_controller.text.contains('/')) {
+//                io.Directory appDocDirectory =
+//                    await getApplicationDocumentsDirectory();
+//                path = appDocDirectory.path + '/' + _controller.text;
+//              }
+//
+//              print("Start recording: $path");
+//              await AudioRecorder.start(
+//                  path: path, audioOutputFormat: AudioOutputFormat.AAC);
+//            } else {
+            await AudioRecorder.start(audioOutputFormat: AudioOutputFormat.AAC);
+//            }
             bool isRecording = await AudioRecorder.isRecording;
             setState(() {
               _recording = new Recording(duration: new Duration(), path: "");
@@ -440,7 +434,6 @@ class _HomeState extends State<Home> {
     if (_isRecording) {
       var recording = await AudioRecorder.stop();
       bool isRecording = await AudioRecorder.isRecording;
-//      print("Stop recording: ${recording.path}");
       setState(() {
         _startedRecord = 0;
         _isRecording = isRecording;
@@ -452,6 +445,8 @@ class _HomeState extends State<Home> {
         _startUploading(_storagePath, _fileName);
       });
       _controller.text = recording.path;
+    } else {
+      toast("failed to upload try again");
     }
   }
 
