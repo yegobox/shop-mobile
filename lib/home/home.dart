@@ -74,6 +74,7 @@ class _HomeState extends State<Home> {
       floatingActionButton: HoldDetector(
         onHold: _recordAudio,
         onCancel: () {
+          _stop();
           setState(() {
             _startedRecord = 0;
             toast("Sending your command...");
@@ -433,6 +434,16 @@ class _HomeState extends State<Home> {
             [PermissionGroup.storage, PermissionGroup.microphone]);
       }
     }
+  }
+
+  _stop() async {
+    var recording = await AudioRecorder.stop();
+    bool isRecording = await AudioRecorder.isRecording;
+    setState(() {
+      _recording = recording;
+      _isRecording = isRecording;
+    });
+    _controller.text = recording.path;
   }
 
   FutureOr _checkStoragePermission(PermissionStatus status) {
