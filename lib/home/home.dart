@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:io' as io;
 import 'dart:math';
 
 import 'package:audio_recorder/audio_recorder.dart';
@@ -16,6 +17,7 @@ import 'package:flutter_uploader/flutter_uploader.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:holding_gesture/holding_gesture.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
@@ -98,7 +100,6 @@ class _HomeState extends State<Home> {
             _startedRecord = 0;
             toast("Sending your command...");
           });
-          _startUploading();
         },
         holdTimeout: Duration(milliseconds: 200),
         enableHapticFeedback: true,
@@ -312,7 +313,6 @@ class _HomeState extends State<Home> {
                                         : Container(
                                             child: GestureDetector(
                                               onTap: () {
-                                                print(categories.data[i].id);
                                                 Navigator.pushNamed(
                                                   context,
                                                   'specific',
@@ -391,25 +391,26 @@ class _HomeState extends State<Home> {
         try {
           if (await AudioRecorder.hasPermissions) {
             if (_controller.text != null && _controller.text != "") {
-              String path = getPath();
+//              String path = _controller.text;
+              io.Directory appDocDirectory =
+                  await getApplicationDocumentsDirectory();
+              var path = appDocDirectory.path;
+//              print(path);
+              if (!_controller.text.contains('/')) {
+                io.Directory appDocDirectory =
+                    await getApplicationDocumentsDirectory();
+                path = appDocDirectory.path;
+              }
 
-              bool isRecording = await AudioRecorder.isRecording;
-              setState(() {
-                _isRecording = isRecording;
-              });
+              print("Start recording: $path");
               await AudioRecorder.start(
                   path: path, audioOutputFormat: AudioOutputFormat.AAC);
             } else {
-              await AudioRecorder.start(
-                  path: getPath(), audioOutputFormat: AudioOutputFormat.AAC);
+              await AudioRecorder.start();
             }
             bool isRecording = await AudioRecorder.isRecording;
-
             setState(() {
-              _recording = new Recording(
-                  duration: new Duration(minutes: 1),
-                  path: getPath(),
-                  audioOutputFormat: AudioOutputFormat.AAC);
+              _recording = new Recording(duration: new Duration(), path: "");
               _isRecording = isRecording;
             });
           } else {
@@ -433,38 +434,42 @@ class _HomeState extends State<Home> {
   }
 
   _stop() async {
-    var recording = await AudioRecorder.stop();
-    print("Stop recording: ${recording.path}");
-    setState(() {
-      _fileName = recording.path.split('/')[4];
-      String a = recording.path;
-      var el = a.split('/').removeLast();
-      _storagePath = a.replaceAll('/' + el, '');
-    });
-    bool isRecording = await AudioRecorder.isRecording;
-    setState(() {
-      _recording = recording;
-      _isRecording = isRecording;
-    });
-    _controller.text = recording.path;
+    print(_isRecording);
+    if (_isRecording) {
+      var recording = await AudioRecorder.stop();
+      bool isRecording = await AudioRecorder.isRecording;
+//      print("Stop recording: ${recording.path}");
+      setState(() {
+        _isRecording = isRecording;
+        _recording = recording;
+        _fileName = recording.path.split('/')[4];
+        String a = recording.path;
+        var el = a.split('/').removeLast();
+        _storagePath = a.replaceAll('/' + el, '');
+        _startUploading(_storagePath, _fileName);
+      });
+      _controller.text = recording.path;
+    }
   }
 
-  void _startUploading() async {
+  void _startUploading(String storagePath, String fileName) async {
     final uploader = FlutterUploader();
     final auth = Provider.of<AuthBlock>(context);
-//    final auth = Auth();
-    final taskId = await uploader.enqueue(
-        url: "your upload link", //required: url to upload to
-        files: [
-          FileItem(
-              filename: _fileName, savedDir: _storagePath, fieldname: "file")
-        ], // required: list of files that you want to upload
-        method: UploadMethod.POST, // HTTP method  (POST or PUT or PATCH)
-        headers: {"Bearer": auth.user['token']},
-//        data: {"name": "john"},
-        showNotification:
-            false, // send local notification (android only) for upload status
-        tag: "upload 1"); // unique tag for upload task
+
+    print(storagePath);
+    print(fileName);
+//    final taskId = await uploader.enqueue(
+//        url: "https://shop.yegobox.com/api/audios", //required: url to upload to
+//        files: [
+//          FileItem(
+//              filename: _fileName, savedDir: _storagePath, fieldname: "file")
+//        ], // required: list of files that you want to upload
+//        method: UploadMethod.POST, // HTTP method  (POST or PUT or PATCH)
+//        headers: {"Bearer": auth.user['token']},
+//        data: {"token": auth.user['token']},
+//        showNotification:
+//            true, // send local notification (android only) for upload status
+//        tag: "upload 1"); // unique tag for upload task
   }
 
   FutureOr _checkStoragePermission(PermissionStatus status) {
