@@ -5,8 +5,8 @@ import 'package:flutter_scaffold/blocks/auth_block.dart';
 import 'package:flutter_scaffold/cart.dart';
 import 'package:flutter_scaffold/categorise.dart';
 import 'package:flutter_scaffold/home/home.dart';
+import 'package:flutter_scaffold/home/product_category_specific.dart';
 import 'package:flutter_scaffold/localizations.dart';
-import 'package:flutter_scaffold/product_detail.dart';
 import 'package:flutter_scaffold/settings.dart';
 import 'package:flutter_scaffold/shop/shop.dart';
 import 'package:flutter_scaffold/wishlist.dart';
@@ -41,11 +41,12 @@ void main() {
         '/': (context) => Home(),
         'auth': (context) => Auth(),
         'shop': (context) => Shop(),
+        'specific': (context) => ProductCategorySpecific(),
         'categorise': (context) => Categorise(),
         'wishlist': (context) => WishList(),
         'cart': (context) => CartList(),
         'profile': (context) => Profile(),
-        'products': (context) => Products()
+//        'products': (context) => Products()
       },
     ),
   ));

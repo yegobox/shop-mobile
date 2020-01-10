@@ -37,13 +37,12 @@ class Database extends _$Database {
       : super(FlutterQueryExecutor.inDatabaseFolder(
             path: 'db.sqlite', logStatements: true));
 
-//  Future<void> deleteAllData() {
-//    return transaction((_) async {
-//      for (var table in allTables) {
-//        await delete(table).go();
-//      }
-//    });
-//  }
+  Future resetDb() async {
+//    for (var table in allTables) {
+    await delete(cart).go();
+    await delete(cartCount).go();
+//    }
+  }
 
   @override
   int get schemaVersion => 1;
@@ -77,7 +76,7 @@ class CartDao extends DatabaseAccessor<Database> with _$UserDaoMixin {
 
   Future updateCart(CartData cart) => update(db.cart).replace(cart);
 
-  Future truncateCart() => delete(db.cart).go();
+  Future truncateCart(cart) => delete(db.cart).delete(cart);
 
   Stream<List<CartData>> isRowExist(int id) {
     return customSelectStream(
@@ -97,10 +96,13 @@ class CartCountDao extends DatabaseAccessor<Database> with _$UserDaoMixin {
 
   CartCountDao(this.db) : super(db);
 
+  Stream<List<CartCountData>> getAllCartCounts() =>
+      select(db.cartCount).watch();
+
   Future insertCount(Insertable<CartCountData> count) =>
       into(db.cartCount).insert(count);
   Stream<List<CartCountData>> watchCount() => select(db.cartCount).watch();
-  Future truncateCartCount() => delete(db.cartCount).go();
+  Future truncateCartCount(row) => delete(db.cartCount).go();
 }
 
 @UseDao(tables: [User])

@@ -46,16 +46,6 @@ class _AppDrawerState extends State<AppDrawer> {
                   Navigator.pushNamed(context, 'auth');
                 },
               ),
-              Divider(),
-              ListTile(
-                leading:
-                    Icon(Icons.settings, color: Theme.of(context).accentColor),
-                title: Text('Settings'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, 'profile');
-                },
-              ),
               ListTile(
                 leading: Icon(Icons.exit_to_app,
                     color: Theme.of(context).accentColor),

@@ -260,8 +260,6 @@ class _CartListState extends State<CartList> {
                         (BuildContext context, AuthBlock auth, Widget child) {
                       return RaisedButton(
                         onPressed: () {
-                          //TODO: make shop endpoint for upload audio and show audio in dashboard with user who sent the audio
-                          //TODO: upload the audio recorded to the server
                           //TODO: swipe to delete should delete an item
                           //TODO: option to increase quantity on swipe right.
                           decideAuthIsNeeded(carts, auth);
@@ -295,7 +293,7 @@ class _CartListState extends State<CartList> {
   }
 
   decideAuthIsNeeded(List<CartData> carts, AuthBlock auth) async {
-    var _user = auth.user['token'];
+    var _user = auth.user == null ? null : auth.user['token'];
     if (_user != null) {
       setState(() {
         _isLoggedIn = true;
@@ -304,9 +302,10 @@ class _CartListState extends State<CartList> {
         _token = _user;
         _isProcessingPayment = true;
       });
-      print("hello_finishing");
 
-      submitCart(carts, auth);
+      final db = Provider.of<Database>(context);
+      db.resetDb();
+//      submitCart(carts, auth);
     } else {
       toast(AppLocalizations.of(context).translate('YOUMUSTBELOGGEDIN'));
       Navigator.pop(context);
@@ -496,8 +495,12 @@ class _CartListState extends State<CartList> {
                     });
                     //empty tables cart & cartCount
                     final db = Provider.of<Database>(context);
-                    db.cartCountDao.truncateCartCount();
-                    db.cartDao.truncateCart();
+                    db.cartDao.getAllCarts().listen((cart) {
+                      db.cartDao.truncateCart(cart);
+                    });
+                    db.cartCountDao.getAllCartCounts().listen((count) {
+                      db.cartCountDao.truncateCartCount(count);
+                    });
                     //done emptying table
                     WePaymentSession wePaymentSession =
                         wePaymentSessionFromJson(code.body);
