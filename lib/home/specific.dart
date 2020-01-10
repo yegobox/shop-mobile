@@ -9,7 +9,6 @@ import 'package:flutter_scaffold/services/products.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../config.dart';
 
@@ -66,14 +65,6 @@ class _SpecificState extends State<Specific> {
                             children: List.generate(products.data.length, (i) {
                               return Container(
                                   child: GestureDetector(
-                                onTap: () {
-                                  Navigator.pushNamed(
-                                    context,
-                                    'specific',
-                                    arguments: ScreenArgumentsProducts(
-                                        products.data[i].id),
-                                  );
-                                },
                                 child: Card(
                                   child: Column(
                                       crossAxisAlignment:
@@ -101,6 +92,45 @@ class _SpecificState extends State<Specific> {
                                           ),
                                         ),
                                         ListTile(
+                                          trailing: GestureDetector(
+                                            onTap: () {
+                                              final database =
+                                                  Provider.of<Database>(
+                                                      context);
+                                              final cart = CartData(
+                                                  refId: products.data[i].id,
+                                                  price: products.data[i].price
+                                                      .toString(),
+                                                  name: products.data[i].name,
+                                                  imageUrl: products.data[i]
+                                                      .images[0].largeImageUrl,
+                                                  quantity: 1);
+                                              database.cartCountDao.insertCount(
+                                                  CartCountData(count: 1));
+                                              database.cartDao
+                                                  .isRowExist(
+                                                      products.data[i].id)
+                                                  .listen((data) => {
+                                                        if (data.length == 0)
+                                                          {
+                                                            database.cartDao
+                                                                .insertCart(
+                                                                    cart)
+                                                          }
+                                                        else
+                                                          {}
+                                                      });
+                                              toast("Added to cart");
+                                            },
+                                            child: RaisedButton(
+                                              color: Colors.deepOrange[500],
+                                              child: Text(
+                                                "Add to cart",
+                                                style: TextStyle(
+                                                    color: Colors.white),
+                                              ),
+                                            ),
+                                          ),
                                           title: Text(
                                             products.data[i].name,
                                             style: TextStyle(
@@ -119,14 +149,6 @@ class _SpecificState extends State<Specific> {
             ));
       },
     );
-  }
-
-  void _launchURL(String url) async {
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      throw 'Could not launch $url';
-    }
   }
 
   void toast(String message) {
