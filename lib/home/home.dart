@@ -369,7 +369,6 @@ class _HomeState extends State<Home> {
   }
 
   void _recordAudio() async {
-    _startedRecord = 1;
     if (_startedRecord == 1) {
       toast("Recording");
     }
@@ -385,25 +384,13 @@ class _HomeState extends State<Home> {
         .checkPermissionStatus(PermissionGroup.storage)
         .then(_checkRecordPermission);
 
-    print(_startedRecord);
     if (_recordPermissionGranted && _storagePermissionGranted) {
       if (_startedRecord == 2) {
+        print("tracking....:" + _startedRecord.toString());
         try {
           if (await AudioRecorder.hasPermissions) {
-//            if (_controller.text != null && _controller.text != "") {
-//              String path = _controller.text;
-//              if (!_controller.text.contains('/')) {
-//                io.Directory appDocDirectory =
-//                    await getApplicationDocumentsDirectory();
-//                path = appDocDirectory.path + '/' + _controller.text;
-//              }
-//
-//              print("Start recording: $path");
-//              await AudioRecorder.start(
-//                  path: path, audioOutputFormat: AudioOutputFormat.AAC);
-//            } else {
             await AudioRecorder.start(audioOutputFormat: AudioOutputFormat.AAC);
-//            }
+
             bool isRecording = await AudioRecorder.isRecording;
             setState(() {
               _recording = new Recording(duration: new Duration(), path: "");
