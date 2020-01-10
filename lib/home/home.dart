@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:io' as io;
 import 'dart:math';
@@ -10,8 +11,10 @@ import 'package:flutter_scaffold/database/moor_database.dart';
 import 'package:flutter_scaffold/localizations.dart';
 import 'package:flutter_scaffold/services/products.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:holding_gesture/holding_gesture.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
 import '../config.dart';
@@ -32,6 +35,10 @@ class _HomeState extends State<Home> {
   Products products;
 
   int cartCount = 0;
+
+  bool _storagePermissionGranted = false;
+
+  bool _recordPermissionGranted = false;
   loadHeaderImages() async {
     final response = await http.get('$BASE_URL/api/products',
         headers: {HttpHeaders.acceptHeader: 'application/json'});
@@ -49,6 +56,9 @@ class _HomeState extends State<Home> {
     }
   }
 
+  int _startedRecord = 0;
+  PermissionStatus _permissionStatus;
+
   @override
   void initState() {
     super.initState();
@@ -59,13 +69,21 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     final dao = Provider.of<CartCountDao>(context);
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Add your onPressed code here!
-          this.recordAudio();
+      floatingActionButton: HoldDetector(
+        onHold: _recordAudio,
+        onCancel: () {
+          setState(() {
+            _startedRecord = 0;
+            toast("Sending your command...");
+          });
         },
-        child: Icon(Icons.settings_voice),
-        backgroundColor: Colors.green,
+        holdTimeout: Duration(milliseconds: 200),
+        enableHapticFeedback: true,
+        child: FloatingActionButton(
+          onPressed: _recordAudio,
+          child: Icon(Icons.settings_voice),
+          backgroundColor: Colors.green,
+        ),
       ),
       drawer: Drawer(
         child: AppDrawer(),
@@ -149,22 +167,6 @@ class _HomeState extends State<Home> {
                                           clipBehavior: Clip.antiAlias,
                                           child: InkWell(
                                             onTap: () {
-//                                              Navigator.pushNamed(
-//                                                context,
-//                                                'products',
-//                                                arguments:
-//                                                    ScreenArgumentsProducts(
-//                                                        i.name,
-//                                                        i.id,
-//                                                        i.images[0]
-//                                                            .largeImageUrl,
-//                                                        i.description,
-//                                                        i.price.toString(),
-//                                                        i.specialPrice
-//                                                            .toString(),
-//                                                        i.reviews.totalRating
-//                                                            .toString()),
-//                                              );
                                               final database =
                                                   Provider.of<Database>(
                                                       context);
@@ -355,7 +357,7 @@ class _HomeState extends State<Home> {
   void toast(String message) {
     Fluttertoast.showToast(
       msg: "$message",
-      toastLength: Toast.LENGTH_LONG,
+      toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.BOTTOM,
       timeInSecForIos: 1,
       backgroundColor: Colors.red,
@@ -364,32 +366,77 @@ class _HomeState extends State<Home> {
     );
   }
 
-  void recordAudio() async {
-    try {
-      if (await AudioRecorder.hasPermissions) {
-        if (_controller.text != null && _controller.text != "") {
-          String path = _controller.text;
-          if (!_controller.text.contains('/')) {
-            io.Directory appDocDirectory =
-                await getApplicationDocumentsDirectory();
-            path = appDocDirectory.path + '/' + _controller.text;
+  void _recordAudio() async {
+    if (_startedRecord == 1) {
+      toast("Recording");
+    }
+    setState(() {
+      _startedRecord += 1;
+    });
+
+    PermissionHandler()
+        .checkPermissionStatus(PermissionGroup.storage)
+        .then(_checkStoragePermission);
+
+    PermissionHandler()
+        .checkPermissionStatus(PermissionGroup.storage)
+        .then(_checkRecordPermission);
+
+    if (_recordPermissionGranted && _storagePermissionGranted) {
+      try {
+        if (await AudioRecorder.hasPermissions) {
+          if (_controller.text != null && _controller.text != "") {
+            String path = _controller.text;
+            if (!_controller.text.contains('/')) {
+              io.Directory appDocDirectory =
+                  await getApplicationDocumentsDirectory();
+              path = appDocDirectory.path + '/' + _controller.text;
+            }
+            //print("Start recording: $path");
+            await AudioRecorder.start(
+                path: path, audioOutputFormat: AudioOutputFormat.AAC);
+          } else {
+            await AudioRecorder.start();
           }
-//          print("Start recording: $path");
-          await AudioRecorder.start(
-              path: path, audioOutputFormat: AudioOutputFormat.AAC);
+          bool isRecording = await AudioRecorder.isRecording;
+          setState(() {
+            _recording = new Recording(duration: new Duration(), path: "");
+            _isRecording = isRecording;
+          });
         } else {
-          await AudioRecorder.start();
+          toast(AppLocalizations.of(context).translate('PERMISION'));
         }
-        bool isRecording = await AudioRecorder.isRecording;
-        setState(() {
-          _recording = new Recording(duration: new Duration(), path: "");
-          _isRecording = isRecording;
-        });
-      } else {
-        toast(AppLocalizations.of(context).translate('PERMISION'));
+      } catch (e) {
+        print(e);
       }
-    } catch (e) {
-      print(e);
+    } else {
+      //request permission
+      if (!_storagePermissionGranted && _startedRecord == 1) {
+        PermissionHandler().requestPermissions(
+            [PermissionGroup.storage, PermissionGroup.microphone]);
+      }
+      if (!_recordPermissionGranted && _startedRecord == 1) {
+        PermissionHandler().requestPermissions(
+            [PermissionGroup.storage, PermissionGroup.microphone]);
+      }
+    }
+  }
+
+  FutureOr _checkStoragePermission(PermissionStatus status) {
+    if (status == PermissionStatus.granted) {
+      setState(() {
+        _storagePermissionGranted = true;
+      });
+      return status;
+    }
+  }
+
+  FutureOr _checkRecordPermission(PermissionStatus status) {
+    if (status == PermissionStatus.granted) {
+      setState(() {
+        _recordPermissionGranted = true;
+      });
+      return status;
     }
   }
 }
