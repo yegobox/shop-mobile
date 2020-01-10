@@ -262,7 +262,6 @@ class _CartListState extends State<CartList> {
                         onPressed: () {
                           //TODO: make shop endpoint for upload audio and show audio in dashboard with user who sent the audio
                           //TODO: upload the audio recorded to the server
-                          //TODO: show loading button and disable for second click on checkout
                           //TODO: swipe to delete should delete an item
                           //TODO: option to increase quantity on swipe right.
                           decideAuthIsNeeded(carts, auth);
@@ -495,6 +494,11 @@ class _CartListState extends State<CartList> {
                     setState(() {
                       _isProcessingPayment = false;
                     });
+                    //empty tables cart & cartCount
+                    final db = Provider.of<Database>(context);
+                    db.cartCountDao.truncateCartCount();
+                    db.cartDao.truncateCart();
+                    //done emptying table
                     WePaymentSession wePaymentSession =
                         wePaymentSessionFromJson(code.body);
                     _launchURL(wePaymentSession.paymentUrl);

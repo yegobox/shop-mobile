@@ -37,6 +37,14 @@ class Database extends _$Database {
       : super(FlutterQueryExecutor.inDatabaseFolder(
             path: 'db.sqlite', logStatements: true));
 
+//  Future<void> deleteAllData() {
+//    return transaction((_) async {
+//      for (var table in allTables) {
+//        await delete(table).go();
+//      }
+//    });
+//  }
+
   @override
   int get schemaVersion => 1;
   @override
@@ -44,6 +52,13 @@ class Database extends _$Database {
     return MigrationStrategy(
       onCreate: (Migrator m) {
         return m.createAllTables();
+      },
+      onUpgrade: (m, from, to) async {
+        // create missing tables that were missing in version 1
+        if (from <= 1) {
+//          await m.createTable(categoryTable);
+          // you also need this line for every other table not created in the first version
+        }
       },
     );
   }
@@ -61,6 +76,8 @@ class CartDao extends DatabaseAccessor<Database> with _$UserDaoMixin {
   Stream<List<CartData>> getAllCarts() => select(db.cart).watch();
 
   Future updateCart(CartData cart) => update(db.cart).replace(cart);
+
+  Future truncateCart() => delete(db.cart).go();
 
   Stream<List<CartData>> isRowExist(int id) {
     return customSelectStream(
@@ -83,6 +100,7 @@ class CartCountDao extends DatabaseAccessor<Database> with _$UserDaoMixin {
   Future insertCount(Insertable<CartCountData> count) =>
       into(db.cartCount).insert(count);
   Stream<List<CartCountData>> watchCount() => select(db.cartCount).watch();
+  Future truncateCartCount() => delete(db.cartCount).go();
 }
 
 @UseDao(tables: [User])
