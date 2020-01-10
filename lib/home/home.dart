@@ -1,19 +1,19 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:io' as io;
 import 'dart:math';
 
 import 'package:audio_recorder/audio_recorder.dart';
 import 'package:badges/badges.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_scaffold/blocks/auth_block.dart';
 import 'package:flutter_scaffold/database/moor_database.dart';
 import 'package:flutter_scaffold/localizations.dart';
 import 'package:flutter_scaffold/services/products.dart';
+import 'package:flutter_uploader/flutter_uploader.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:holding_gesture/holding_gesture.dart';
 import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
@@ -39,6 +39,10 @@ class _HomeState extends State<Home> {
   bool _storagePermissionGranted = false;
 
   bool _recordPermissionGranted = false;
+
+  String _fileName;
+
+  String _storagePath;
   loadHeaderImages() async {
     try {
       final response = await http.get('$BASE_URL/api/products',
@@ -79,6 +83,7 @@ class _HomeState extends State<Home> {
             _startedRecord = 0;
             toast("Sending your command...");
           });
+          _startUploading();
         },
         holdTimeout: Duration(milliseconds: 200),
         enableHapticFeedback: true,
@@ -181,7 +186,7 @@ class _HomeState extends State<Home> {
                                                       i.images[0].largeImageUrl,
                                                   quantity: 1);
                                               setState(() {
-//                                                cartCount += 1;
+                                                //
                                                 database.cartCountDao
                                                     .insertCount(CartCountData(
                                                         count: 1));
@@ -283,14 +288,38 @@ class _HomeState extends State<Home> {
                                 crossAxisCount: 2,
                                 padding: EdgeInsets.only(
                                     top: 8, left: 6, right: 6, bottom: 12),
-                                children: List.generate(products.data.length,
-                                    (index) {
+                                children:
+                                    List.generate(products.data.length, (i) {
                                   return Container(
                                     child: Card(
                                       clipBehavior: Clip.antiAlias,
                                       child: InkWell(
                                         onTap: () {
-                                          print('Card tapped.');
+                                          final database =
+                                              Provider.of<Database>(context);
+                                          final cart = CartData(
+                                              refId: products.data[i].id,
+                                              price: products.data[i].price
+                                                  .toString(),
+                                              name: products.data[i].name,
+                                              imageUrl: products.data[i]
+                                                  .images[0].largeImageUrl,
+                                              quantity: 1);
+                                          setState(() {
+                                            //
+                                            database.cartCountDao.insertCount(
+                                                CartCountData(count: 1));
+                                          });
+                                          database.cartDao
+                                              .isRowExist(products.data[i].id)
+                                              .listen((data) => {
+                                                    if (data.length == 0)
+                                                      {
+                                                        database.cartDao
+                                                            .insertCart(cart)
+                                                      }
+                                                  });
+                                          toast("added to cart");
                                         },
                                         child: Column(
                                           crossAxisAlignment:
@@ -308,7 +337,7 @@ class _HomeState extends State<Home> {
                                                 imageUrl:
                                                     products.data.length != 0
                                                         ? products
-                                                            .data[index]
+                                                            .data[i]
                                                             .images[0]
                                                             .largeImageUrl
                                                         : "",
@@ -387,17 +416,11 @@ class _HomeState extends State<Home> {
 
     if (_recordPermissionGranted && _storagePermissionGranted) {
       if (_startedRecord == 2) {
-        print(_startedRecord);
-        print("start");
         try {
           if (await AudioRecorder.hasPermissions) {
             if (_controller.text != null && _controller.text != "") {
-              String path = _controller.text;
-              if (!_controller.text.contains('/')) {
-                io.Directory appDocDirectory =
-                    await getApplicationDocumentsDirectory();
-                path = appDocDirectory.path + '/' + "maafe";
-              }
+              String path = getPath();
+
               bool isRecording = await AudioRecorder.isRecording;
               setState(() {
                 _isRecording = isRecording;
@@ -406,13 +429,14 @@ class _HomeState extends State<Home> {
                   path: path, audioOutputFormat: AudioOutputFormat.AAC);
             } else {
               await AudioRecorder.start(
-                  audioOutputFormat: AudioOutputFormat.AAC);
+                  path: getPath(), audioOutputFormat: AudioOutputFormat.AAC);
             }
             bool isRecording = await AudioRecorder.isRecording;
 
             setState(() {
               _recording = new Recording(
                   duration: new Duration(minutes: 1),
+                  path: getPath(),
                   audioOutputFormat: AudioOutputFormat.AAC);
               _isRecording = isRecording;
             });
@@ -438,12 +462,37 @@ class _HomeState extends State<Home> {
 
   _stop() async {
     var recording = await AudioRecorder.stop();
+    print("Stop recording: ${recording.path}");
+    setState(() {
+      _fileName = recording.path.split('/')[4];
+      String a = recording.path;
+      var el = a.split('/').removeLast();
+      _storagePath = a.replaceAll('/' + el, '');
+    });
     bool isRecording = await AudioRecorder.isRecording;
     setState(() {
       _recording = recording;
       _isRecording = isRecording;
     });
     _controller.text = recording.path;
+  }
+
+  void _startUploading() async {
+    final uploader = FlutterUploader();
+    final auth = Provider.of<AuthBlock>(context);
+//    final auth = Auth();
+    final taskId = await uploader.enqueue(
+        url: "your upload link", //required: url to upload to
+        files: [
+          FileItem(
+              filename: _fileName, savedDir: _storagePath, fieldname: "file")
+        ], // required: list of files that you want to upload
+        method: UploadMethod.POST, // HTTP method  (POST or PUT or PATCH)
+        headers: {"Bearer": auth.user['token']},
+//        data: {"name": "john"},
+        showNotification:
+            false, // send local notification (android only) for upload status
+        tag: "upload 1"); // unique tag for upload task
   }
 
   FutureOr _checkStoragePermission(PermissionStatus status) {
@@ -462,5 +511,11 @@ class _HomeState extends State<Home> {
       });
       return status;
     }
+  }
+
+  getPath() async {
+    return "";
+//    io.Directory appDocDirectory = await getApplicationDocumentsDirectory();
+//    return appDocDirectory.path + '/' + "maafe";
   }
 }
