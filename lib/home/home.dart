@@ -441,6 +441,10 @@ class _HomeState extends State<Home> {
     final uploader = FlutterUploader();
     final auth = Provider.of<AuthBlock>(context);
 
+    if (auth.user == null) {
+      toast("You need to login to send command");
+      return;
+    }
     final taskId = await uploader.enqueue(
         url: "https://shop.yegobox.com/api/audios", //required: url to upload to
         files: [
