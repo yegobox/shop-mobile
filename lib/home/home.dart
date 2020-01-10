@@ -40,20 +40,22 @@ class _HomeState extends State<Home> {
 
   bool _recordPermissionGranted = false;
   loadHeaderImages() async {
-    final response = await http.get('$BASE_URL/api/products',
-        headers: {HttpHeaders.acceptHeader: 'application/json'});
-    if (response.statusCode == 200) {
-      setState(() {
-        products = productsFromJson(response.body);
-      });
-    } else {
-      Fluttertoast.showToast(
-          msg: 'Error loading products',
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.CENTER,
-          timeInSecForIos: 1,
-          fontSize: 16.0);
-    }
+    try {
+      final response = await http.get('$BASE_URL/api/products',
+          headers: {HttpHeaders.acceptHeader: 'application/json'});
+      if (response.statusCode == 200) {
+        setState(() {
+          products = productsFromJson(response.body);
+        });
+      } else {
+        Fluttertoast.showToast(
+            msg: 'Error loading products',
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+            timeInSecForIos: 1,
+            fontSize: 16.0);
+      }
+    } catch (e) {}
   }
 
   int _startedRecord = 0;
@@ -383,39 +385,50 @@ class _HomeState extends State<Home> {
         .then(_checkRecordPermission);
 
     if (_recordPermissionGranted && _storagePermissionGranted) {
-      try {
-        if (await AudioRecorder.hasPermissions) {
-          if (_controller.text != null && _controller.text != "") {
-            String path = _controller.text;
-            if (!_controller.text.contains('/')) {
-              io.Directory appDocDirectory =
-                  await getApplicationDocumentsDirectory();
-              path = appDocDirectory.path + '/' + _controller.text;
+      if (_startedRecord == 2) {
+        print(_startedRecord);
+        print("start");
+        try {
+          if (await AudioRecorder.hasPermissions) {
+            if (_controller.text != null && _controller.text != "") {
+              String path = _controller.text;
+              if (!_controller.text.contains('/')) {
+                io.Directory appDocDirectory =
+                    await getApplicationDocumentsDirectory();
+                path = appDocDirectory.path + '/' + "maafe";
+              }
+              bool isRecording = await AudioRecorder.isRecording;
+              setState(() {
+                _isRecording = isRecording;
+              });
+              await AudioRecorder.start(
+                  path: path, audioOutputFormat: AudioOutputFormat.AAC);
+            } else {
+              await AudioRecorder.start(
+                  audioOutputFormat: AudioOutputFormat.AAC);
             }
-            //print("Start recording: $path");
-            await AudioRecorder.start(
-                path: path, audioOutputFormat: AudioOutputFormat.AAC);
+            bool isRecording = await AudioRecorder.isRecording;
+
+            setState(() {
+              _recording = new Recording(
+                  duration: new Duration(minutes: 1),
+                  audioOutputFormat: AudioOutputFormat.AAC);
+              _isRecording = isRecording;
+            });
           } else {
-            await AudioRecorder.start();
+            toast(AppLocalizations.of(context).translate('PERMISION'));
           }
-          bool isRecording = await AudioRecorder.isRecording;
-          setState(() {
-            _recording = new Recording(duration: new Duration(), path: "");
-            _isRecording = isRecording;
-          });
-        } else {
-          toast(AppLocalizations.of(context).translate('PERMISION'));
+        } catch (e) {
+          print(e);
         }
-      } catch (e) {
-        print(e);
       }
     } else {
       //request permission
-      if (!_storagePermissionGranted && _startedRecord == 1) {
+      if (!_storagePermissionGranted && _startedRecord == 2) {
         PermissionHandler().requestPermissions(
             [PermissionGroup.storage, PermissionGroup.microphone]);
       }
-      if (!_recordPermissionGranted && _startedRecord == 1) {
+      if (!_recordPermissionGranted && _startedRecord == 2) {
         PermissionHandler().requestPermissions(
             [PermissionGroup.storage, PermissionGroup.microphone]);
       }
