@@ -302,7 +302,6 @@ class _CartListState extends State<CartList> {
         _token = _user;
         _isProcessingPayment = true;
       });
-
       final db = Provider.of<Database>(context);
       db.resetDb();
 //      submitCart(carts, auth);
@@ -495,12 +494,7 @@ class _CartListState extends State<CartList> {
                     });
                     //empty tables cart & cartCount
                     final db = Provider.of<Database>(context);
-                    db.cartDao.getAllCarts().listen((cart) {
-                      db.cartDao.truncateCart(cart);
-                    });
-                    db.cartCountDao.getAllCartCounts().listen((count) {
-                      db.cartCountDao.truncateCartCount(count);
-                    });
+                    db.resetDb();
                     //done emptying table
                     WePaymentSession wePaymentSession =
                         wePaymentSessionFromJson(code.body);

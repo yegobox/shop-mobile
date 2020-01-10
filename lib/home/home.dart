@@ -205,6 +205,7 @@ class _HomeState extends State<Home> {
                                                     .insertCount(CartCountData(
                                                         count: 1));
                                               });
+                                              //TODO: insert if does not exist
                                               database.cartDao
                                                   .isRowExist(i.id)
                                                   .listen((data) => {
@@ -456,7 +457,7 @@ class _HomeState extends State<Home> {
         data: {"token": auth.user['token']},
         showNotification:
             true, // send local notification (android only) for upload status
-        tag: "upload 1"); // unique tag for upload task
+        tag: "uploading audio..."); // unique tag for upload task
   }
 
   FutureOr _checkStoragePermission(PermissionStatus status) {

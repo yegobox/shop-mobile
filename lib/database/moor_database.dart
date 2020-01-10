@@ -38,10 +38,8 @@ class Database extends _$Database {
             path: 'db.sqlite', logStatements: true));
 
   Future resetDb() async {
-//    for (var table in allTables) {
     await delete(cart).go();
     await delete(cartCount).go();
-//    }
   }
 
   @override
@@ -75,8 +73,6 @@ class CartDao extends DatabaseAccessor<Database> with _$UserDaoMixin {
   Stream<List<CartData>> getAllCarts() => select(db.cart).watch();
 
   Future updateCart(CartData cart) => update(db.cart).replace(cart);
-
-  Future truncateCart(cart) => delete(db.cart).delete(cart);
 
   Stream<List<CartData>> isRowExist(int id) {
     return customSelectStream(
